@@ -1,19 +1,9 @@
 ﻿using System;
-using Microsoft.Xna.Framework;
-using StardewModdingAPI;
-using StardewModdingAPI.Events;
-using StardewModdingAPI.Utilities;
-using StardewValley;
 using System.Reflection;
-using StardewValley.Menus;
-using StardewValley.Monsters;
-using StardewValley.Locations;
-using StardewValley.Characters;
 using System.Collections.Generic;
 using System.Collections;
-using System.Timers;
 using Microsoft.Xna.Framework.Graphics;
-using Netcode;
+using StardewModdingAPI;
 
 namespace ExtremeFishingOverhaul
 {
@@ -289,14 +279,5 @@ namespace ExtremeFishingOverhaul
         }
 
         
-    }
-    class ModConfig
-    {
-        public int seed { get; set; } = (int)(DateTime.Now.Ticks & 0x0000FFFF);
-        public int maxFishingLevel { get; set; } = 10;
-        public int minFishingLevel { get; set; } = 1;
-        public bool maxLevOverride { get; set; } = false;
-        public int maxFish { get; set; } = 500;
-
     }
 }
