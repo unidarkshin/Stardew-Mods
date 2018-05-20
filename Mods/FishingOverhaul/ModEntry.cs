@@ -2,6 +2,8 @@
 using System.Reflection;
 using System.Collections.Generic;
 using System.Collections;
+using Microsoft.Xna.Framework.Graphics;
+using StardewModdingAPI;
 
 namespace ExtremeFishingOverhaul
 {
