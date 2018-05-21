@@ -14,9 +14,9 @@ namespace ExtremeFishingOverhaul
         public static Mod instance;
         public static Random rnd;
 
-        String[] fType = {"mixed", "dart", "floater", "sinker"};
-        String[] names = { "Jaguar", "Loveless", "Horny", "Chinese", "Japanese", "Korean", "Frightened", "American", "Sweedish", "Iranian", "Polish", "Bloodied", "Decaying", "Dead", "Dying", "Eager", "Kawaii", "Russian", "German", "Noodle", "Floppy", "Disk", "Bubble", "Fruit", "Stinky", "Taco", "Knife", "Hawk", "Night", "Sky", "Lizard", "Clown", "Floob", "Peruvian", "Forgotten", "Cranky", "Loopy", "Irresponsible" "Fish", "Dog", "Cat", "Mother", "Father", "Transvestite", "Llama", "Giraffe", "Expert", "Happy", "Sad", "Real", "Fake", "Cheating", "Freaky", "Legendary", "Common", "Rare", "Ultimate", "Original", "Freaky", "Slimy", "Rude", "Discriminatory", "Anorexic", "Enslaved", "Ghost", "Bird", "Squish", "Helium", "Metal", "Wood", "Stone", "Borking", "Skinny", "Janky", "Swaggy", "Oblivious", "Boring", "Raping", "Racist", "Fat", "Astral", "Elysian", "Celestial", "Angelic", "Immortal", "Obese", "Janky", "Strange", "Eerie", "Fishy", "Star", "Stringy", "Politically Correct", "Cougar", "BBW", "Creamy", "Moist", "Rookie", "Undead", "Listless", "Horny", "Bland", "Seasoned", "Careful", "Belligerent", "Uncanny", "Light", "Flakey", "Flaming", "Copious", "Arrogant", "Scaley", "Hallowed", "Sacred", "Small", "Excited", "Smothered", "Lava", "Molten", "Drake", "Sandy", "Ice", "Chocolate", "Slippery", "Shadey", "Elemental", "Expermental", "Air", "Fire", "Nature", "Earth", "Tree", "Mutant", "Defecating", "Physics Defying", "Passionate", "Cute", "Sexual", "Lonely", "Anxious", "Terrible", "Impressive", "Mentally", "Dangerous", "Intelligent", "Lucky", "Dramatic", "Embarrassed", "Conscious", "Wonderful", "Wonder", "Unique", "Freezing", "Beautiful", "Enchanted", "Ghostly" };
-        String[] n_post = { "Fish", "Ray", "Turtle", "SeaGod", "Eel", "Legend", "Slut" };
+        String[] fType = { "mixed", "dart", "floater", "sinker" };
+        String[] names = { "Jaguar", "Loveless", "Horny", "Chinese", "Japanese", "Korean", "Frightened", "American", "Sweedish", "Iranian", "Polish", "Bloodied", "Decaying", "Dead", "Dying", "Eager", "Kawaii", "Russian", "German", "Noodle", "Floppy", "Disk", "Bubble", "Fruit", "Stinky", "Taco", "Knife", "Hawk", "Night", "Sky", "Lizard", "Clown", "Floob", "Peruvian", "Forgotten", "Cranky", "Loopy", "Irresponsible", "Fish", "Dog", "Cat", "Mother", "Father", "Transvestite", "Llama", "Giraffe", "Expert", "Happy", "Sad", "Real", "Fake", "Cheating", "Freaky", "Legendary", "Common", "Rare", "Ultimate", "Original", "Freaky", "Slimy", "Rude", "Discriminatory", "Anorexic", "Enslaved", "Ghost", "Bird", "Squish", "Helium", "Metal", "Wood", "Stone", "Borking", "Skinny", "Janky", "Swaggy", "Oblivious", "Boring", "Raping", "Racist", "Fat", "Astral", "Elysian", "Celestial", "Angelic", "Immortal", "Obese", "Janky", "Strange", "Eerie", "Fishy", "Star", "Stringy", "Politically Correct", "Cougar", "BBW", "Creamy", "Moist", "Rookie", "Undead", "Listless", "Horny", "Bland", "Seasoned", "Careful", "Belligerent", "Uncanny", "Light", "Flakey", "Flaming", "Copious", "Arrogant", "Scaley", "Hallowed", "Sacred", "Small", "Excited", "Smothered", "Lava", "Molten", "Drake", "Sandy", "Ice", "Chocolate", "Slippery", "Shadey", "Elemental", "Expermental", "Air", "Fire", "Nature", "Earth", "Tree", "Mutant", "Defecating", "Physics Defying", "Passionate", "Cute", "Sexual", "Lonely", "Anxious", "Terrible", "Impressive", "Mentally", "Dangerous", "Intelligent", "Lucky", "Dramatic", "Embarrassed", "Conscious", "Wonderful", "Wonder", "Unique", "Freezing", "Beautiful", "Enchanted", "Ghostly" };
+        String[] n_post = { "Fish", "Ray", "Angelfish", "Moonfish", "Eel", "Sucker", "Dragonfish", "Minnou", "Angler", "Prowfish" };
 
 
         List<string> diffs = new List<string>();
@@ -45,20 +45,21 @@ namespace ExtremeFishingOverhaul
         /// <param name="asset">A helper which encapsulates metadata about an asset and enables changes to it.</param>
         public void Edit<T>(IAssetData asset)
         {
-            
-            
 
-            if (asset.AssetNameEquals(@"Data\Fish")) {
 
-                
-                    for (int i = 0; i < MaxFish; i++)
-                    {
+
+            if (asset.AssetNameEquals(@"Data\Fish"))
+            {
+
+
+                for (int i = 0; i < MaxFish; i++)
+                {
                     double spawn;
 
-                        if(legend[i] == true)
-                        {
+                    if (legend[i] == true)
+                    {
                         spawn = 0.2;
-                        }
+                    }
                     else if (legend2[i] == true)
                     {
                         spawn = 0.1;
@@ -75,29 +76,29 @@ namespace ExtremeFishingOverhaul
                             .Set
                             (int.Parse(fIDS[i]), $"Fish {fIDS[i]}/{diffs[i]}/{type[i]}/1/{rnd.Next(10, 100).ToString()}/600 2600/spring/both/1 .1 1 .1/{rnd.Next(3, 6).ToString()}/{spawn.ToString()}/0.5/{levRS[i]}");
 
-                    
-                    }
+
+                }
 
 
-                
+
             }
-            else if(asset.AssetNameEquals(@"Data\ObjectInformation"))
+            else if (asset.AssetNameEquals(@"Data\ObjectInformation"))
             {
                 //this.Monitor.Log("2nd");
                 bool rare = false;
                 bool rare2 = false;
-                
 
 
-                    for (int i = 0; i < MaxFish; i++)
-                    {
+
+                for (int i = 0; i < MaxFish; i++)
+                {
                     double y = rnd.NextDouble();
                     string x = "";
                     if (y < 0.5)
                     {
                         x = names[rnd.Next(0, names.Length - 1)] + " " + n_post[rnd.Next(0, n_post.Length - 1)];
                     }
-                    else if(y<0.8)
+                    else if (y < 0.8)
                     {
                         x = names[rnd.Next(0, names.Length - 1)] + " " + names[rnd.Next(0, names.Length - 1)] + " " + n_post[rnd.Next(0, n_post.Length - 1)];
                     }
@@ -143,11 +144,11 @@ namespace ExtremeFishingOverhaul
                         diff = rnd.Next(20, 120);
                         ft = fType[rnd.Next(0, fType.Length - 1)];
                     }
-                    
+
                     diff = (int)(diff * (((levR + 100.0) / 250.0) + 0.30));
-                    int price = (int)(((diff * diff)/40.0) * (((levR + 8) * (levR + 8)) / (100.0 * ((levR + 1)/2.0))));
-                 
-                    
+                    int price = (int)(((diff * diff) / 40.0) * (((levR + 8) * (levR + 8)) / (100.0 * ((levR + 1) / 2.0))));
+
+
                     int food = 0 + (int)((diff / 20.0) * rnd.Next(-1 * (int)(levR + 10 / 5.0), (int)(levR + 10 / 5.0)));
 
                     //this.Monitor.Log($"Levs: {levR}");
@@ -160,10 +161,15 @@ namespace ExtremeFishingOverhaul
                     {
                         price = (int)(price * 1.25);
                     }
+                    else if (ft == "floater")
+                    {
+                        price = (int)(price * 0.8);
+                    }
                     else
                     {
                         price = (int)(price * 0.6);
                     }
+
                     //"Astral", "Elysian", "Celestial", "Angelic", "Immortal",
                     if (rare)
                     {
@@ -181,7 +187,7 @@ namespace ExtremeFishingOverhaul
                             .Set
                             (id, $"{x}/{price.ToString()}/{food.ToString()}/Fish -4/{x}/Price: {price.ToString()}\nDifficulty: {diff.ToString()}\nLevel Requirement: {levR.ToString()}\nFish Type: {ft}/ Day Night^Spring Fall");
 
-                        fIDS.Add(id.ToString());
+                    fIDS.Add(id.ToString());
                     diffs.Add(diff.ToString());
                     type.Add(ft);
                     levRS.Add(levR.ToString());
@@ -193,22 +199,21 @@ namespace ExtremeFishingOverhaul
 
 
 
-                
+
             }
-            else if(asset.AssetNameEquals(@"Data\Locations"))
+            else if (asset.AssetNameEquals(@"Data\Locations"))
             {
-                
+
                 asset
                 .AsDictionary<string, string>()
                 .Set((id, data) =>
                 {
-                    //this.Monitor.Log($"|||||-----> {5}");
-                    string[] fields = data.Split('/');
-                    //if (int.TryParse(fields[4], out int val) && int.TryParse(fields[5], out int val2) && int.TryParse(fields[6], out int val3) && int.TryParse(fields[7], out int val4))
-                    //{
                     
+                    string[] fields = data.Split('/');
+                    
+
                     for (int i = 0; i < fIDS.Count; i++)
-                        {
+                    {
                         if (rnd.NextDouble() < 0.33)
                         {
                             fields[4] += " " + fIDS[i] + " -1";
@@ -232,15 +237,11 @@ namespace ExtremeFishingOverhaul
 
 
                     }
-                        
-                        return string.Join("/", fields);
-                    //}
-                    //else
-                    //{
-                    //    return string.Join("/", fields);
-                    //}
+
+                    return string.Join("/", fields);
+  
                 });
-                
+
             }
             else if (asset.AssetNameEquals(@"Maps\springobjects"))
             {
@@ -252,8 +253,7 @@ namespace ExtremeFishingOverhaul
 
         public override void Entry(IModHelper helper)
         {
-            //GameEvents.OneSecondTick += GameEvents_OneSecondTick;
-            //PlayerEvents.InventoryChanged += PlayerEvents_InventoryChanged;
+
             ModConfig config = helper.ReadConfig<ModConfig>();
             rnd = new Random(config.seed);
             Monitor.Log("Seed loaded.");
@@ -278,6 +278,6 @@ namespace ExtremeFishingOverhaul
 
         }
 
-        
+
     }
 }

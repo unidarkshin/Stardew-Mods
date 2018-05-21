@@ -32,26 +32,32 @@ namespace LevelExtender
         public static Random rand = new Random(Guid.NewGuid().GetHashCode());
         int[] origLevs = { 0, 0, 0, 0, 0 };
         int[] origExp = { 0, 0, 0, 0, 0 };
-        //string[] monsters = { "Dust Spirit", "Grub", "Skeleton", "Fireball", "Ghost", "Metal Head", "Green Slime", "Wilderness Golem", "Shadow Brute" };
         bool wm = false;
         bool pres_comp = false;
         int[] oldLevs = { 0, 0, 0, 0, 0 };
         int[] newLevs = { 0, 0, 0, 0, 0 };
         bool[] olev = { false, false, false, false, false };
-        bool[] shLev = { true,true,true,true,true };
+        bool[] shLev = { true, true, true, true, true };
         double xp_mod = 1.0;
 
         bool no_mons = false;
 
-        /*********
-        ** Public methods
-        *********/
-        /// <summary>The mod entry point, called after the mod is first loaded.</summary>
-        /// <param name="helper">Provides simplified APIs for writing mods.</param>
+        private LEModApi API;
+
+
+        public ModEntry()
+        {
+            instance = this;
+        }
+
+        public override object GetApi()
+        {
+            return API = new LEModApi();
+        }
+
         public bool CanEdit<T>(IAssetInfo asset)
         {
             return asset.AssetNameEquals(@"Data\Fish");
-            //return false;
         }
 
         /// <summary>Edit a matched asset.</summary>
@@ -65,7 +71,7 @@ namespace LevelExtender
                     string[] fields = data.Split('/');
                     if (int.TryParse(fields[1], out int val))
                     {
-                        int x = (val - rand.Next(0,(int)(Game1.player.FishingLevel / 4)));
+                        int x = (val - rand.Next(0, (int)(Game1.player.FishingLevel / 4)));
                         if (x < 1)
                             x = rand.Next(1, val);
                         fields[1] = x.ToString();
@@ -81,7 +87,7 @@ namespace LevelExtender
 
         public override void Entry(IModHelper helper)
         {
-            instance = this;
+            //instance = this;
             GameEvents.OneSecondTick += this.GameEvents_OneSecondTick;
             GameEvents.EighthUpdateTick += this.GameEvents_QuarterSecondTick;
             SaveEvents.AfterLoad += this.SaveEvents_AfterLoad;
@@ -102,20 +108,14 @@ namespace LevelExtender
 
         }
 
-        /*********
-        ** Private methods
-        *********/
-        /// <summary>The method invoked when the player presses a keyboard button.</summary>
-        /// <param name="sender">The event sender.</param>
-        /// <param name="e">The event data.</param>
         private void tellXP(string command, string[] args)
         {
-            
+
             int[] temp = { Game1.player.FarmingLevel, Game1.player.FishingLevel, Game1.player.ForagingLevel, Game1.player.MiningLevel, Game1.player.CombatLevel };
             this.Monitor.Log($"XP: Farming  Fishing  Foraging  Mining  Combat |");
             for (int i = 0; i < addedXP.Length; i++)
             {
-                if(temp[i]>=10)
+                if (temp[i] >= 10)
                     this.Monitor.Log($"XP: {addedXP[i]}");
                 else
                     this.Monitor.Log($"XP: Empty.");
@@ -124,7 +124,7 @@ namespace LevelExtender
             for (int i = 0; i < sLevs.Length; i++)
             {
                 if (temp[i] >= 10)
-                    this.Monitor.Log($"NL: {Math.Round((1000 * temp[i] + (temp[i] * temp[i] * temp[i] * 0.33))*xp_mod)}");
+                    this.Monitor.Log($"NL: {Math.Round((1000 * temp[i] + (temp[i] * temp[i] * temp[i] * 0.33)) * xp_mod)}");
                 else
                     this.Monitor.Log($"XP: Empty.");
             }
@@ -132,19 +132,18 @@ namespace LevelExtender
             {
                 this.Monitor.Log($"Current XP - Default: {Game1.player.experiencePoints[i]}.");
             }
-            
+
         }
         private void SetLev(string command, string[] args)
         {
             int n;
-            if(args[0]==null || args[1]==null || !int.TryParse(args[1], out n))
+            if (args[0] == null || args[1] == null || !int.TryParse(args[1], out n))
             {
-                //this.Monitor.Log($"{int.TryParse(args[1], out n)}");
                 this.Monitor.Log($"Function Failed!");
                 return;
             }
             n = int.Parse(args[1]);
-            if(n<1 || n > 100)
+            if (n < 1 || n > 100)
             {
                 this.Monitor.Log($"Function Failed!");
                 return;
@@ -172,7 +171,7 @@ namespace LevelExtender
                     old[0] = false;
                 }
             }
-            else if(args[0].ToLower() == "fishing")
+            else if (args[0].ToLower() == "fishing")
             {
                 Game1.player.FishingLevel = n;
                 if (n < 10)
@@ -277,7 +276,8 @@ namespace LevelExtender
         }
         private void xpM(string command, string[] args)
         {
-            if(double.TryParse(args[0], out double x) && x > 0.0){
+            if (double.TryParse(args[0], out double x) && x > 0.0)
+            {
                 xp_mod = x;
                 this.Monitor.Log($"Modifier set to: {x}");
             }
@@ -286,21 +286,9 @@ namespace LevelExtender
                 this.Monitor.Log($"Valid decimal not used; refer to help command.");
             }
         }
-            private void MenuEvents_MenuChanged(object sender, EventArgsClickableMenuChanged e)
+        private void MenuEvents_MenuChanged(object sender, EventArgsClickableMenuChanged e)
         {
-            /*if (Context.IsWorldReady)
-            {
-                
-                Monitor.Log($"Menu: -------> {e.NewMenu.GetType().FullName} &");
-                
-            }*/
-            
-            
-            /*if (e.PriorMenu is ShippingMenu)
-            {
-                rem_mons();
-            }*/
-            
+
         }
         private void MenuEvents_MenuClosed(object sender, EventArgsClickableMenuClosed e)
         {
@@ -330,17 +318,15 @@ namespace LevelExtender
         }
         public void closing()
         {
-            //System.Threading.Thread.Sleep(1000);
 
-            //this.Monitor.Log($"{Game1.player.name} closed prestige menu.");
             if (Game1.player.FarmingLevel >= 10 && shLev[0])
             {
                 Game1.player.FarmingLevel = origLevs[0];
-                //Game1.player.experiencePoints[0] = origExp[0];
+
             }
             else if (!shLev[0])
             {
-                if(origLevs[0]-10 >= 10)
+                if (origLevs[0] - 10 >= 10)
                     sLevs[0] = origLevs[0] - 10;
                 else
                     sLevs[0] = 10;
@@ -350,17 +336,15 @@ namespace LevelExtender
                 newXP[0] = 0;
                 old[0] = false;
 
-                //addFishingXP(1, 0);
-                //Game1.player.experiencePoints[0] = getExp(origLevs[0] - 10);
             }
             if (Game1.player.FishingLevel >= 10 && shLev[1])
             {
                 Game1.player.FishingLevel = origLevs[1];
-                //Game1.player.experiencePoints[1] = origExp[1];
+
             }
             else if (!shLev[1])
             {
-                //this.Monitor.Log($"{origLevs[1]-10} old fishing lev - 10 - prestige menu.");
+
                 if (origLevs[1] - 10 >= 10)
                     sLevs[1] = origLevs[1] - 10;
                 else
@@ -371,13 +355,11 @@ namespace LevelExtender
                 newXP[1] = 0;
                 old[1] = false;
 
-                //addFishingXP(1, 0);
-                //Game1.player.experiencePoints[0] = getExp(origLevs[0] - 10);
             }
             if (Game1.player.ForagingLevel >= 10 && shLev[2])
             {
                 Game1.player.ForagingLevel = origLevs[2];
-                //Game1.player.experiencePoints[2] = origExp[2];
+
             }
             else if (!shLev[2])
             {
@@ -391,13 +373,11 @@ namespace LevelExtender
                 newXP[2] = 0;
                 old[2] = false;
 
-                //addFishingXP(1, 0);
-                //Game1.player.experiencePoints[0] = getExp(origLevs[0] - 10);
             }
             if (Game1.player.MiningLevel >= 10 && shLev[3])
             {
                 Game1.player.MiningLevel = origLevs[3];
-                //Game1.player.experiencePoints[3] = origExp[3];
+
             }
             else if (!shLev[3])
             {
@@ -411,17 +391,15 @@ namespace LevelExtender
                 newXP[3] = 0;
                 old[3] = false;
 
-                //addFishingXP(1, 0);
-                //Game1.player.experiencePoints[0] = getExp(origLevs[0] - 10);
             }
             if (Game1.player.CombatLevel >= 10 && shLev[4])
             {
                 Game1.player.CombatLevel = origLevs[4];
-                //Game1.player.experiencePoints[4] = origExp[4];
+
             }
             else if (!shLev[4])
             {
-                if(origLevs[4] - 10 >= 10)
+                if (origLevs[4] - 10 >= 10)
                     sLevs[4] = origLevs[4] - 10;
                 else
                     sLevs[4] = 10;
@@ -431,8 +409,6 @@ namespace LevelExtender
                 newXP[4] = 0;
                 old[4] = false;
 
-                //addFishingXP(1, 0);
-                //Game1.player.experiencePoints[0] = getExp(origLevs[0] - 10);
             }
             origLevs = new int[] { 0, 0, 0, 0, 0 };
             origExp = new int[] { 0, 0, 0, 0, 0 };
@@ -441,7 +417,8 @@ namespace LevelExtender
         }
         private int getExp(int x)
         {
-            switch (x) {
+            switch (x)
+            {
                 case 0:
                     x = 0;
                     break;
@@ -480,7 +457,7 @@ namespace LevelExtender
         }
         private void ControlEvent_KeyPressed(object sender, EventArgsKeyPressed e)
         {
-            //this.Monitor.Log($"{Game1.player.name} pressed {e.KeyPressed}.+ Menu {Game1.activeClickableMenu.GetType().FullName}");
+
             if (Game1.activeClickableMenu is GameMenu && e.KeyPressed == Microsoft.Xna.Framework.Input.Keys.P && !pres_comp)
             {
                 //this.Monitor.Log($"{Game1.player.name} pressed P--.");
@@ -490,54 +467,38 @@ namespace LevelExtender
                     origLevs[0] = Game1.player.FarmingLevel;
                     Game1.player.FarmingLevel = 10;
 
-                    //origExp[0] = Game1.player.experiencePoints[0];
-                    //Game1.player.experiencePoints[0] = 15000;
                 }
                 if (Game1.player.FishingLevel > 10)
                 {
                     origLevs[1] = Game1.player.FishingLevel;
                     Game1.player.FishingLevel = 10;
 
-                    //origExp[1] = Game1.player.experiencePoints[1];
-                    //Game1.player.experiencePoints[1] = 15000;
                 }
                 if (Game1.player.ForagingLevel > 10)
                 {
                     origLevs[2] = Game1.player.ForagingLevel;
                     Game1.player.ForagingLevel = 10;
 
-                    //origExp[2] = Game1.player.experiencePoints[2];
-                    //Game1.player.experiencePoints[2] = 15000;
                 }
                 if (Game1.player.MiningLevel > 10)
                 {
                     origLevs[3] = Game1.player.MiningLevel;
                     Game1.player.MiningLevel = 10;
 
-                    //origExp[3] = Game1.player.experiencePoints[3];
-                    //Game1.player.experiencePoints[3] = 15000;
                 }
                 if (Game1.player.CombatLevel > 10)
                 {
                     origLevs[4] = Game1.player.CombatLevel;
                     Game1.player.CombatLevel = 10;
 
-                    //origExp[4] = Game1.player.experiencePoints[4];
-                    //Game1.player.experiencePoints[4] = 15000;
                 }
             }
         }
-            private void GameEvents_OneSecondTick(object sender, EventArgs e)
+        private void GameEvents_OneSecondTick(object sender, EventArgs e)
         {
             int[] temp = { Game1.player.FarmingLevel, Game1.player.FishingLevel, Game1.player.ForagingLevel, Game1.player.MiningLevel, Game1.player.CombatLevel };
             if (Context.IsWorldReady) // save is loaded
             {
-
-                //this.Monitor.Log($"{Game1.player.name} pressed.");
-
-                // Code to try goes here.
-                
-                
 
                 for (int i = 0; i < temp.Length; i++)
                 {
@@ -555,38 +516,31 @@ namespace LevelExtender
                             old[i] = false;
                             addFishingXP(newXP[i] - oldXP[i], i);
                         }
-                        //else if(newXP[i] - oldXP[i] < 0)
-                        //{
-                        //    oldXP[i] = Game1.player.experiencePoints[i];
-                        //    newXP[i] = Game1.player.experiencePoints[i];
-                        //    old[i] = false;
-                            
-                        //}
+
                     }
                 }
 
-                
+
             }
-            if(Context.IsWorldReady && pres_comp)
+            if (Context.IsWorldReady && pres_comp)
             {
-                //this.Monitor.Log($"World ready + pres_comp.");
+
                 for (int i = 0; i < temp.Length; i++)
                 {
                     if (temp[i] >= 10 && !olev[i])
                     {
                         oldLevs[i] = temp[i];
                         olev[i] = true;
-                        //this.Monitor.Log($"oldLevs[i] = {oldLevs[i]}.");
+
                     }
                     else if (olev[i])
                     {
                         newLevs[i] = temp[i];
-                        //this.Monitor.Log($"oldLevs[i] = {oldLevs[i]}, newLevs[i] = {newLevs[i]} --lev difference index {i}.");
 
                         if (newLevs[i] - oldLevs[i] < 0)
                         {
                             olev[i] = false;
-                            if (newLevs[i] - oldLevs[i] == -10 && oldLevs[i]==10)
+                            if (newLevs[i] - oldLevs[i] == -10 && oldLevs[i] == 10)
                             {
                                 shLev[i] = false;
                             }
@@ -596,83 +550,83 @@ namespace LevelExtender
             }
             if (Context.IsWorldReady && !no_mons && wm && Game1.player.currentLocation.IsOutdoors && Game1.activeClickableMenu == null && rand.NextDouble() <= s_r())
             {
-                
+
                 Vector2 loc = Game1.player.currentLocation.getRandomTile();
                 while (!(Game1.player.currentLocation.isTileLocationTotallyClearAndPlaceable(loc)))
                 {
                     loc = Game1.player.currentLocation.getRandomTile();
                 }
-                //int x = (int)loc.X;
-                //int y = (int)loc.Y;
 
-                //Monster m = new Monster(monsters[rand.Next(monsters.Length)],loc * (float)Game1.tileSize);
                 Monster m = getMonster(rand.Next(7), loc * (float)Game1.tileSize);
-                m.DamageToFarmer = (int)(m.DamageToFarmer / 1.5) + (int)(Game1.player.CombatLevel/3);
-                m.Health = (int)(m.Health / 1.5) + ((Game1.player.CombatLevel/2) * (m.Health / 10));
+                m.DamageToFarmer = (int)(m.DamageToFarmer / 1.5) + (int)(Game1.player.CombatLevel / 3);
+                m.Health = (int)(m.Health / 1.5) + ((Game1.player.CombatLevel / 2) * (m.Health / 10));
                 m.focusedOnFarmers = true;
                 m.wildernessFarmMonster = true;
                 m.Speed += rand.Next(3 + Game1.player.CombatLevel);
-                m.resilience.Set(m.resilience.Value + (Game1.player.CombatLevel/10));
+                m.resilience.Set(m.resilience.Value + (Game1.player.CombatLevel / 10));
                 m.ExperienceGained += (Game1.player.CombatLevel / 2);
 
                 IList<NPC> characters = Game1.currentLocation.characters;
                 characters.Add((NPC)m);
-                
+
 
             }
 
-            /*bool x = true;
+        }
+        public double s_r()
+        {
+            double x;
 
-            foreach (Farmer f in Game1.getOnlineFarmers())
+            if (API.overSR == -1.0)
             {
-                if (f.isInBed.Value || (Game1.timeOfDay >= 140 && Game1.timeOfDay <= 200))
+                if (Game1.player.CombatLevel == 0 && !Game1.isDarkOut())
                 {
-
+                    return 0.0;
                 }
+
+                if (Game1.isDarkOut() || Game1.isRaining)
+                {
+                    return (0.010 + (Game1.player.CombatLevel * 0.0001)) * 2;
+                }
+
+                return (0.010 + (Game1.player.CombatLevel * 0.0001));
+
+            }
+            else
+            {
+                if (Game1.player.CombatLevel == 0 && !Game1.isDarkOut())
+                {
+                    x = 0.0;
+                }
+
+                else if (Game1.isDarkOut() || Game1.isRaining)
+                {
+                    x = (0.010 + (Game1.player.CombatLevel * 0.0001)) * 2;
+                }
+
                 else
                 {
-                    x = false;
+                    x = (0.010 + (Game1.player.CombatLevel * 0.0001));
                 }
-                
+
             }
 
-            if (x && !no_mons)
-            {
-                rem_mons();
-            }*/
-            
-        }
-        private double s_r()
-        {
-            if (Game1.player.CombatLevel == 0 && !Game1.isDarkOut())
-            {
-                return 0.0;
-            }
-
-            if (Game1.isDarkOut() || Game1.isRaining)
-            {
-                return (0.010 + (Game1.player.CombatLevel * 0.0001)) * 2;
-            }
-
-            return (0.010 + (Game1.player.CombatLevel * 0.0001));
-            
-            
-
+            return x + API.overSR;
 
         }
         private void GameEvents_QuarterSecondTick(object sender, EventArgs e)
         {
-            if (Context.IsWorldReady && Game1.player.FishingLevel > 10) // save is loaded
+            if (Context.IsWorldReady && Game1.player.FishingLevel > 10) 
             {
                 if (Game1.activeClickableMenu is BobberBar && !firstFade)
                 {
-                    //bool fadeIn = this.Helper.Reflection.GetPrivateField<bool>(Game1.activeClickableMenu, "fadeIn").GetValue();
+
 
                     firstFade = true;
                     this.Monitor.Log($"{this.Helper.Reflection.GetField<int>(Game1.activeClickableMenu, "bobberBarHeight").GetValue()} -SIZE.");
                     this.Helper.Reflection.GetField<int>(Game1.activeClickableMenu, "bobberBarHeight").SetValue(176);
                     this.Helper.Reflection.GetField<float>(Game1.activeClickableMenu, "bobberBarPos").SetValue((float)(568 - 176));
-                    //;
+                    
 
                 }
                 else if (!(Game1.activeClickableMenu is BobberBar) && firstFade)
@@ -687,11 +641,11 @@ namespace LevelExtender
                     {
                         float dist = this.Helper.Reflection.GetField<float>(Game1.activeClickableMenu, "distanceFromCatching").GetValue();
                         this.Helper.Reflection.GetField<float>(Game1.activeClickableMenu, "distanceFromCatching").SetValue(dist + ((float)(Game1.player.FishingLevel - 10) / 22000.0f));
-                        //
+                        
                     }
                 }
             }
-            
+
         }
         private void TimeEvent_AfterDayStarted(object sender, EventArgs e)
         {
@@ -701,7 +655,7 @@ namespace LevelExtender
 
         public void rem_mons()
         {
-            
+
             no_mons = true;
 
             Monitor.Log("Removed Monsters.");
@@ -715,8 +669,8 @@ namespace LevelExtender
                     if (characters[i] is Monster && (characters[i] as Monster).wildernessFarmMonster)
                     {
                         characters.RemoveAt(i);
-                        
-                            
+
+
                     }
                 }
             }
@@ -812,19 +766,16 @@ namespace LevelExtender
         }
         private void SaveEvents_BeforeSave(object sender, EventArgs e)
         {
-            //object[] temp = { Game1.player.FarmingLevel, Game1.player.FishingLevel, Game1.player.ForagingLevel, Game1.player.MiningLevel, Game1.player.CombatLevel };
-            //object[] temp2 = { config.faXP, config.fXP, config.foXP, config.mXP, config.cXP };
-            //object[] temp3 = { config.faLV, config.fLV, config.foLV, config.mLV, config.cLV };
 
-                if (Game1.player.FarmingLevel >= 10)
-                {
+            if (Game1.player.FarmingLevel >= 10)
+            {
 
-                    Game1.player.FarmingLevel = sLevs[0];
-                    config.faXP = addedXP[0];
-                    config.faLV = sLevs[0];
+                Game1.player.FarmingLevel = sLevs[0];
+                config.faXP = addedXP[0];
+                config.faLV = sLevs[0];
 
-                    this.Monitor.Log($"{Game1.player.Name} saved farming level {Game1.player.FarmingLevel}!");
-                }
+                this.Monitor.Log($"{Game1.player.Name} saved farming level {Game1.player.FarmingLevel}!");
+            }
             if (Game1.player.FishingLevel >= 10)
             {
 
@@ -866,7 +817,7 @@ namespace LevelExtender
 
             this.Helper.WriteJsonFile<ModData>($"data/{Constants.SaveFolderName}.json", config);
 
-            //rem_mons();
+            
 
             if (!no_mons)
             {
@@ -883,10 +834,10 @@ namespace LevelExtender
             max = new int[] { 100, 100, 100, 100, 100 };
             firstFade = false;
             config = new ModData();
-            //rand = new Random();
+            
             origLevs = new int[] { 0, 0, 0, 0, 0 };
             origExp = new int[] { 0, 0, 0, 0, 0 };
-            //string[] monsters = { "Dust Spirit", "Grub", "Skeleton", "Fireball", "Ghost", "Metal Head", "Green Slime", "Wilderness Golem", "Shadow Brute" };
+            
             wm = new bool();
             pres_comp = false;
             oldLevs = new int[] { 0, 0, 0, 0, 0 };
@@ -900,12 +851,13 @@ namespace LevelExtender
             int[] temp = { Game1.player.FarmingLevel, Game1.player.FishingLevel, Game1.player.ForagingLevel, Game1.player.MiningLevel, Game1.player.CombatLevel };
             this.Monitor.Log($"Adding XP: {xp}");
             addedXP[i] += xp;
-            if ((addedXP[i] >= Math.Round((1000*temp[i] + (temp[i]*temp[i]*temp[i]*0.33))*xp_mod)) && sLevs[i] < max[i])
+            if ((addedXP[i] >= Math.Round((1000 * temp[i] + (temp[i] * temp[i] * temp[i] * 0.33)) * xp_mod)) && sLevs[i] < max[i])
             {
                 addedXP[i] = 0;
                 sLevs[i] += 1;
-                //temp[i] = sLevs[i];
-                if (i == 0) {
+
+                if (i == 0)
+                {
                     Game1.player.FarmingLevel = sLevs[i];
                 }
                 else if (i == 1)
@@ -964,6 +916,23 @@ namespace LevelExtender
         private void OnTimedEvent(object source, ElapsedEventArgs e)
         {
             this.closing();
+        }
+
+        public class LEModApi
+        {
+
+            public LEModApi()
+            {
+
+            }
+
+            //This value will offset spawn-rate by the specified amount (1 second intervals)
+            public double overSR = -1.0;
+
+            public void spawn_rate(double osr)
+            {
+                overSR = osr;
+            }
         }
     }
 }
