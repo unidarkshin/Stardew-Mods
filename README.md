@@ -32,7 +32,7 @@ Available fields:
 
 field                     | purpose
 ------------------------- | -------
-`seed`                    | What seed is being used to generate the random fish (In multiplayer all players need the same seed if they want the same fish..
+`seed`                    | What seed is being used to generate the random fish (In multiplayer all players need the same seed if they want the same fish.)
 `maxFishingLevel`         | What the max fishing level is.
 `minFishingLevel`         | What the minimum fishing level is.
 `maxLevOverride`          | Set to true to Override max level when [Level Extender](https://www.nexusmods.com/stardewvalley/mods/1471) is installed.
