@@ -1,4 +1,4 @@
-﻿﻿**[Extreme Fishing Overhaul](https://www.nexusmods.com/stardewvalley/mods/2212)** is a [Stardew Valley](http://stardewvalley.net/) mod which makes the game's
+﻿﻿[**Extreme Fishing Overhaul**](https://www.nexusmods.com/stardewvalley/mods/2212) is a [Stardew Valley](http://stardewvalley.net/) mod which makes the game's
 fishing fun.
 
 ## Contents
