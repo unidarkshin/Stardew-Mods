@@ -13,6 +13,7 @@ using StardewValley.Objects;
 using System.Timers;
 using StardewValley.TerrainFeatures;
 using StardewValley.Monsters;
+using StardewValley.Locations;
 
 namespace TreasureMaps
 {
@@ -51,8 +52,18 @@ namespace TreasureMaps
             TimeEvents.AfterDayStarted += TimeEvents_AfterDayStarted;
             GameEvents.OneSecondTick += GameEvents_OneSecondTick;
             SaveEvents.BeforeSave += SaveEvents_BeforeSave;
+            PlayerEvents.Warped += PlayerEvents_Warped;
 
             helper.ConsoleCommands.Add("tile", "Prints treasure location and tile location.", this.printTile);
+            
+        }
+
+        private void PlayerEvents_Warped(object sender, EventArgsPlayerWarped e)
+        {
+            /*if(e.NewLocation is MineShaft && (Game1.player.currentLocation as MineShaft).mineLevel == 10)
+            {
+                (Game1.player.currentLocation as MineShaft).mineLevel = 219;
+            }*/   
             
         }
 

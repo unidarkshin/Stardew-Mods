@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtremeFishingOverhaul", "F
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreasureMaps", "TreasureMaps\TreasureMaps.csproj", "{842FD02A-B897-4BD2-A982-48BA06A55ABB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfiniteInventory", "InfiniteInventory\InfiniteInventory.csproj", "{BA2CCF30-5618-4D64-9036-B555F53AA660}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{842FD02A-B897-4BD2-A982-48BA06A55ABB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{842FD02A-B897-4BD2-A982-48BA06A55ABB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{842FD02A-B897-4BD2-A982-48BA06A55ABB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA2CCF30-5618-4D64-9036-B555F53AA660}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA2CCF30-5618-4D64-9036-B555F53AA660}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA2CCF30-5618-4D64-9036-B555F53AA660}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA2CCF30-5618-4D64-9036-B555F53AA660}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
