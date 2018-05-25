@@ -41,6 +41,64 @@ namespace InfiniteInventory
             SaveEvents.BeforeSave += SaveEvents_BeforeSave;
             SaveEvents.AfterLoad += SaveEvents_AfterLoad;
             MenuEvents.MenuChanged += MenuEvents_MenuChanged;
+
+            helper.ConsoleCommands.Add("buy_tab", "Buys the next inventory tab.", this.buy_tab);
+            helper.ConsoleCommands.Add("set_tab", "(CHEAT) Sets the number of tabs in you inventory. Syntax: set_tab <Integer>", this.set_tab);
+
+            helper.ConsoleCommands.Add("cost", "Cost for the next inventory tab.", this.cost);
+            helper.ConsoleCommands.Add("set_cost", "Sets cost multiplier for tabs. Syntax: set_cost <Integer>. Default: 30000.", this.set_cost);
+        }
+
+        private void set_cost(string arg1, string[] arg2)
+        {
+            if (int.TryParse(arg2[0], out int r))
+            {
+                iv.cost = r;
+                return;
+            }
+
+            Monitor.Log("Error: Invalid parameters. Syntax: set_cost <Integer>", LogLevel.Error);
+        }
+
+        private void cost(string arg1, string[] arg2)
+        {
+            Monitor.Log($"Cost for tab {iv.maxTab + 1}: {iv.maxTab * iv.cost}; cost = {iv.cost}.");
+        }
+
+        private void set_tab(string arg1, string[] arg2)
+        {
+            if (int.TryParse(arg2[0], out int r))
+            {
+                if (r > 1 && r > iv.maxTab)
+                {
+                    iv.maxTab = r;
+
+                    Monitor.Log("Set_tab was successful.");
+                    return;
+                }
+            }
+
+            Monitor.Log("Error: Invalid parameters. Syntax: set_tab <Integer>", LogLevel.Error);
+        }
+
+        private void buy_tab(string arg1, string[] arg2)
+        {
+            int cost = (iv.maxTab) * iv.cost;
+
+            if (Game1.player.Money < cost)
+            {
+                Game1.chatBox.addMessage($"You dont have {cost} coins for tab {iv.maxTab + 1}.", Color.DarkRed);
+
+                return;
+            }
+            else
+            {
+                Game1.player.Money -= cost;
+
+                iv.maxTab++;
+
+                Game1.chatBox.addMessage($"You successfully purchased tab {iv.maxTab} for {cost} coins.", Color.ForestGreen);
+            }
         }
 
         private void MenuEvents_MenuChanged(object sender, EventArgsClickableMenuChanged e)
@@ -71,7 +129,7 @@ namespace InfiniteInventory
 
         private void InputEvents_ButtonPressed(object sender, EventArgsInput e)
         {
-            if (Context.IsWorldReady && Game1.activeClickableMenu is GameMenu)
+            if (Context.IsWorldReady && Game1.activeClickableMenu is GameMenu && Game1.player.MaxItems >= 36)
             {
                 List<IClickableMenu> tabs = this.Helper.Reflection.GetField<List<IClickableMenu>>(Game1.activeClickableMenu, "pages").GetValue();
                 IClickableMenu curTab = tabs[(Game1.activeClickableMenu as GameMenu).currentTab];
@@ -81,7 +139,7 @@ namespace InfiniteInventory
                     {
                         iv.changeTabs(iv.currTab - 1);
                     }
-                    else if(e.Button == SButton.NumPad2)
+                    else if (e.Button == SButton.NumPad2)
                     {
                         iv.changeTabs(iv.currTab + 1);
                     }
@@ -104,16 +162,19 @@ namespace InfiniteInventory
     public class ModData
     {
         public List<List<string>> itemInfo { get; set; }
-        
+
 
         public int maxTab { get; set; }
+        public int cost { get; set; }
 
         public ModData()
         {
+            this.cost = 30000;
+            this.maxTab = 1;
 
             this.itemInfo = new List<List<string>>();
-            
-            this.maxTab = 5;
+
+
         }
     }
 
