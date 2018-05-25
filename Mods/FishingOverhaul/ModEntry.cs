@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Collections;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
+using Microsoft.Xna.Framework;
+using StardewValley.Objects;
+using Netcode;
 
 namespace ExtremeFishingOverhaul
 {
@@ -58,11 +61,11 @@ namespace ExtremeFishingOverhaul
 
                     if (legend[i] == true)
                     {
-                        spawn = 0.2;
+                        spawn = 0.1;
                     }
                     else if (legend2[i] == true)
                     {
-                        spawn = 0.1;
+                        spawn = 0.05;
                     }
                     else
                     {
@@ -90,8 +93,11 @@ namespace ExtremeFishingOverhaul
 
 
 
+
                 for (int i = 0; i < MaxFish; i++)
                 {
+                    string specialID = "";
+
                     double y = rnd.NextDouble();
                     string x = "";
                     if (y < 0.5)
@@ -110,17 +116,19 @@ namespace ExtremeFishingOverhaul
                     if (x.ToLower().Contains("elysian") || x.ToLower().Contains("angelic") || x.ToLower().Contains("immortal"))
                     {
                         rare = true;
-                        x = x.ToUpper();
+                        //x = x.ToUpper();
                         legend[i] = true;
 
+                        specialID += "Legendary (200 to 400%), ";
                         //Monitor.Log("Celestial F Created.");
                     }
                     else if (x.ToLower().Contains("celestial") || x.ToLower().Contains("astral"))
                     {
                         rare2 = true;
-                        x = x.ToUpper();
+                        //x = x.ToUpper();
                         legend2[i] = true;
 
+                        specialID += "Super Legendary (1000 to 2000%), ";
                         //Monitor.Log("Celestial2 F Created.");
                     }
 
@@ -146,10 +154,30 @@ namespace ExtremeFishingOverhaul
                     }
 
                     diff = (int)(diff * (((levR + 100.0) / 250.0) + 0.30));
-                    int price = (int)(((diff * diff) / 40.0) * (((levR + 8) * (levR + 8)) / (100.0 * ((levR + 1) / 2.0))));
+                    int price = 0 + (int)(((diff * diff) / 40.0) * (((levR + 8) * (levR + 8)) / (100.0 * ((levR + 1) / 2.0))));
 
+                    int food = rnd.Next((int)((levR - 10) / 3.0), (int)(((diff + 20) / 20.0) * ((levR + 10) / 5.0)));
+                    //this.Monitor.Log($"-------->food {food}");
 
-                    int food = 0 + (int)((diff / 20.0) * rnd.Next(-1 * (int)(levR + 10 / 5.0), (int)(levR + 10 / 5.0)));
+                    if (rnd.NextDouble() < 0.125)
+                    {
+                        food = -1 * food;
+                    }
+
+                    if (food < -100)
+                    {
+                        price = (int)(price * 1.5);
+
+                        specialID += "Poisonous (150%), ";
+                    }
+                    else if (food < -1000)
+                    {
+                        price = (int)(price * 2.0);
+
+                        specialID += "Deadly Poison (200%), ";
+                    }
+
+                    //int food = 0 + (int)((diff / 20.0) * rnd.Next(-1 * (int)(levR + 10 / 5.0), (int)(levR + 10 / 5.0)));
 
                     //this.Monitor.Log($"Levs: {levR}");
 
@@ -182,10 +210,15 @@ namespace ExtremeFishingOverhaul
                         food *= rnd.Next(10, 20);
                     }
 
+                    if (price < 20)
+                    {
+                        price = 20;
+                    }
+
                     asset
                             .AsDictionary<int, string>()
                             .Set
-                            (id, $"{x}/{price.ToString()}/{food.ToString()}/Fish -4/{x}/Price: {price.ToString()}\nDifficulty: {diff.ToString()}\nLevel Requirement: {levR.ToString()}\nFish Type: {ft}/ Day Night^Spring Fall");
+                            (id, $"{x}/{price.ToString()}/{food.ToString()}/Fish -4/{x}/Price: {price.ToString()}\nDifficulty: {diff.ToString()}\nLevel Requirement: {levR.ToString()}\nFish Type: {ft}\nSpecial: {specialID}/ Day Night^Spring Fall");
 
                     fIDS.Add(id.ToString());
                     diffs.Add(diff.ToString());
@@ -208,9 +241,9 @@ namespace ExtremeFishingOverhaul
                 .AsDictionary<string, string>()
                 .Set((id, data) =>
                 {
-                    
+
                     string[] fields = data.Split('/');
-                    
+
 
                     for (int i = 0; i < fIDS.Count; i++)
                     {
@@ -239,7 +272,7 @@ namespace ExtremeFishingOverhaul
                     }
 
                     return string.Join("/", fields);
-  
+
                 });
 
             }
@@ -277,6 +310,9 @@ namespace ExtremeFishingOverhaul
             legend2 = new List<bool>(new bool[MaxFish]);
 
         }
+
+
+
 
 
     }

@@ -14,6 +14,7 @@ using System.Timers;
 using StardewValley.TerrainFeatures;
 using StardewValley.Monsters;
 using StardewValley.Locations;
+using System.Collections;
 
 namespace InfiniteInventory
 {
@@ -44,11 +45,7 @@ namespace InfiniteInventory
 
         private void MenuEvents_MenuChanged(object sender, EventArgsClickableMenuChanged e)
         {
-            if (Context.IsWorldReady)
-            {
-                this.Monitor.Log($"Menu: {e.NewMenu.GetType().FullName}");
 
-            }
         }
 
         private void SaveEvents_AfterLoad(object sender, EventArgs e)
@@ -58,7 +55,8 @@ namespace InfiniteInventory
 
         private void SaveEvents_BeforeSave(object sender, EventArgs e)
         {
-
+            iv.changeTabs(1);
+            iv.saveData();
         }
 
         private void GameEvents_OneSecondTick(object sender, EventArgs e)
@@ -73,12 +71,22 @@ namespace InfiniteInventory
 
         private void InputEvents_ButtonPressed(object sender, EventArgsInput e)
         {
-            if (Context.IsWorldReady)
+            if (Context.IsWorldReady && Game1.activeClickableMenu is GameMenu)
             {
-                if (e.Button == SButton.RightControl)
+                List<IClickableMenu> tabs = this.Helper.Reflection.GetField<List<IClickableMenu>>(Game1.activeClickableMenu, "pages").GetValue();
+                IClickableMenu curTab = tabs[(Game1.activeClickableMenu as GameMenu).currentTab];
+                if (curTab is InventoryPage)
                 {
-
+                    if (e.Button == SButton.NumPad1)
+                    {
+                        iv.changeTabs(iv.currTab - 1);
+                    }
+                    else if(e.Button == SButton.NumPad2)
+                    {
+                        iv.changeTabs(iv.currTab + 1);
+                    }
                 }
+
             }
         }
 
@@ -92,4 +100,21 @@ namespace InfiniteInventory
 
 
     }
+
+    public class ModData
+    {
+        public List<List<string>> itemInfo { get; set; }
+        
+
+        public int maxTab { get; set; }
+
+        public ModData()
+        {
+
+            this.itemInfo = new List<List<string>>();
+            
+            this.maxTab = 5;
+        }
+    }
+
 }
