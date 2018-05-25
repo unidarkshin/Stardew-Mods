@@ -7,7 +7,7 @@ namespace ExtremeFishingOverhaul {
         public int maxFishingLevel { get; set; } = 10;
         public int minFishingLevel { get; set; } = 1;
         public bool maxLevOverride { get; set; } = false;
-        public int maxFish { get; set; } = 500;
+        public int maxFish { get; set; } = 2028;
 
     }
 }
