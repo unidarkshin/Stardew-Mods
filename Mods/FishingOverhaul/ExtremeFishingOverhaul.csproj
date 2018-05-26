@@ -55,6 +55,9 @@
     <Compile Include="TehFishingHelper.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="assets\springobjects.xnb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Manifest.json" />
     <None Include="packages.config" />
   </ItemGroup>
