@@ -7,6 +7,9 @@ using StardewModdingAPI;
 using Microsoft.Xna.Framework;
 using StardewValley.Objects;
 using Netcode;
+using StardewModdingAPI.Events;
+using StardewValley;
+using TehPers.FishingOverhaul.Api.Enums;
 
 namespace ExtremeFishingOverhaul
 {
@@ -32,6 +35,14 @@ namespace ExtremeFishingOverhaul
         int MaxFish;
         int maxFL;
         int minFL;
+
+        /// <summary>Used to register fish with Teh's Fishing Overhaul (if it's loaded)</summary>
+        private readonly TehFishingHelper tehHelper;
+
+        public ModEntry() {
+            this.tehHelper = new TehFishingHelper(this);
+        }
+
         /*********
         ** Public methods
         *********/
@@ -74,12 +85,16 @@ namespace ExtremeFishingOverhaul
 
 
 
+                    int maxSize = rnd.Next(10, 100);
                     asset
                             .AsDictionary<int, string>()
                             .Set
-                            (int.Parse(fIDS[i]), $"Fish {fIDS[i]}/{diffs[i]}/{type[i]}/1/{rnd.Next(10, 100).ToString()}/600 2600/spring/both/1 .1 1 .1/{rnd.Next(3, 6).ToString()}/{spawn.ToString()}/0.5/{levRS[i]}");
+                            (int.Parse(fIDS[i]), $"Fish {fIDS[i]}/{diffs[i]}/{type[i]}/1/{maxSize.ToString()}/600 2600/spring/both/1 .1 1 .1/{rnd.Next(3, 6).ToString()}/{spawn.ToString()}/0.5/{levRS[i]}");
 
-
+                    // Teh's Fishing Overhaul compatibilty
+                    int fishId = int.Parse(this.fIDS[i]);
+                    this.tehHelper.AddedData[fishId].Weight = (float) spawn;
+                    this.tehHelper.AddedTraits[fishId].MaxSize = maxSize;
                 }
 
 
@@ -227,6 +242,34 @@ namespace ExtremeFishingOverhaul
 
                     rare = false;
                     rare2 = false;
+
+                    // Teh's Fishing Overhaul compatibility
+                    FishMotionType motionType;
+                    switch (ft) {
+                        case "mixed":
+                            motionType = FishMotionType.MIXED;
+                            break;
+                        case "dart":
+                            motionType = FishMotionType.DART;
+                            break;
+                        case "floater":
+                            motionType = FishMotionType.FLOATER;
+                            break;
+                        case "sinker":
+                            motionType = FishMotionType.SINKER;
+                            break;
+                        case "smooth":
+                            motionType = FishMotionType.SMOOTH;
+                            break;
+                        default:
+                            motionType = FishMotionType.MIXED;
+                            break;
+                    }
+
+                    // Max size gets set when Fish.xnb is loaded
+                    TehFishingHelper.FishTraits traits = new TehFishingHelper.FishTraits(diff, motionType, 1, 1, x);
+                    TehFishingHelper.FishData data = new TehFishingHelper.FishData(levR);
+                    this.tehHelper.AddFish(id, traits, data);
                 }
 
 
@@ -245,27 +288,41 @@ namespace ExtremeFishingOverhaul
                     string[] fields = data.Split('/');
 
 
-                    for (int i = 0; i < fIDS.Count; i++)
+                    for (int i = 0; i < fIDS.Count; i++) 
                     {
+                        int fishID = int.Parse(this.fIDS[i]);
+
                         if (rnd.NextDouble() < 0.33)
                         {
                             fields[4] += " " + fIDS[i] + " -1";
                             //this.Monitor.Log($"|||||-----> {fIDS[i]}");
+
+                            this.tehHelper.AddLocation(fishID, id);
+                            this.tehHelper.AddedData[fishID].Seasons.Add("spring");
                         }
                         if (rnd.NextDouble() < 0.33)
                         {
                             fields[5] += " " + fIDS[i] + " -1";
                             //this.Monitor.Log($"|||||-----> {fIDS[i]}");
+
+                            this.tehHelper.AddLocation(fishID, id);
+                            this.tehHelper.AddedData[fishID].Seasons.Add("summer");
                         }
                         if (rnd.NextDouble() < 0.33)
                         {
                             fields[6] += " " + fIDS[i] + " -1";
                             //this.Monitor.Log($"|||||-----> {fIDS[i]}");
+
+                            this.tehHelper.AddLocation(fishID, id);
+                            this.tehHelper.AddedData[fishID].Seasons.Add("fall");
                         }
                         if (rnd.NextDouble() < 0.33)
                         {
                             fields[7] += " " + fIDS[i] + " -1";
                             //this.Monitor.Log($"|||||-----> {fIDS[i]}");
+
+                            this.tehHelper.AddLocation(fishID, id);
+                            this.tehHelper.AddedData[fishID].Seasons.Add("winter");
                         }
 
 
@@ -309,6 +366,8 @@ namespace ExtremeFishingOverhaul
             legend = new List<bool>(new bool[MaxFish]);
             legend2 = new List<bool>(new bool[MaxFish]);
 
+            // Experimental compatibility with Teh's Fishing Overhaul (until Nuget package is updated)
+            GameEvents.FirstUpdateTick += (sender, e) => this.tehHelper.TryRegisterFish();
         }
 
 

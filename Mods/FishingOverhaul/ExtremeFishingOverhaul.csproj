@@ -41,11 +41,18 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="TehPers.Core.Api">
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods\TehPers.FishingOverhaul\TehPers.Core.Api.dll</HintPath>
+    </Reference>
+    <Reference Include="TehPers.FishingOverhaul.Api">
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods\TehPers.FishingOverhaul\TehPers.FishingOverhaul.Api.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ModConfig.cs" />
     <Compile Include="ModEntry.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TehFishingHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Manifest.json" />
