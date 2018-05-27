@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreasureMaps", "TreasureMap
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfiniteInventory", "InfiniteInventory\InfiniteInventory.csproj", "{BA2CCF30-5618-4D64-9036-B555F53AA660}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sprint", "Sprint\Sprint.csproj", "{53AB1CD9-071D-4CA3-982B-C34749C87882}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{BA2CCF30-5618-4D64-9036-B555F53AA660}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA2CCF30-5618-4D64-9036-B555F53AA660}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA2CCF30-5618-4D64-9036-B555F53AA660}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53AB1CD9-071D-4CA3-982B-C34749C87882}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53AB1CD9-071D-4CA3-982B-C34749C87882}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53AB1CD9-071D-4CA3-982B-C34749C87882}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53AB1CD9-071D-4CA3-982B-C34749C87882}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
