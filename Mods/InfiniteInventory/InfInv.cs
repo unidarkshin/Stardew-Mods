@@ -190,7 +190,7 @@ namespace InfiniteInventory
             //itemInfo[0].Add(null);
             //itemInfo.Add(new List<string>());
 
-            foreach (List<Item> items in invs)
+            foreach (IList<Item> items in invs)
             {
 
                 if (!first)

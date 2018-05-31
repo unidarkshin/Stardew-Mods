@@ -11,6 +11,7 @@ using Netcode;
 using StardewModdingAPI.Events;
 using StardewValley;
 using TehPers.FishingOverhaul.Api.Enums;
+using System.IO;
 
 namespace ExtremeFishingOverhaul
 {
@@ -90,7 +91,7 @@ namespace ExtremeFishingOverhaul
                     }
                     else
                     {
-                        spawn = ModEntry.rnd.Next(3, 5 - Math.Max(0, (int) Math.Round(levRS[i] / 50D))) / 10D;
+                        spawn = ModEntry.rnd.Next(3, 5 - Math.Max(0, (int)Math.Round(levRS[i] / 50D))) / 10D;
                     }
 
 
@@ -103,7 +104,7 @@ namespace ExtremeFishingOverhaul
 
                     // Teh's Fishing Overhaul compatibilty
                     int fishId = this.fIDS[i];
-                    this.tehHelper.AddedData[fishId].Weight = (float) spawn;
+                    this.tehHelper.AddedData[fishId].Weight = (float)spawn;
                     this.tehHelper.AddedTraits[fishId].MaxSize = maxSize;
                 }
 
@@ -112,22 +113,27 @@ namespace ExtremeFishingOverhaul
             }
             else if (asset.AssetNameEquals(@"Data\ObjectInformation"))
             {
-                for (int i = 0; i < this.MaxFish; i++) {
-                    int price = 0 + (int) (((diffs[i] * diffs[i]) / 40.0) * (((levRS[i] + 8) * (levRS[i] + 8)) / (100.0 * ((levRS[i] + 1) / 2.0))));
+                for (int i = 0; i < this.MaxFish; i++)
+                {
+                    int price = 0 + (int)(((diffs[i] * diffs[i]) / 40.0) * (((levRS[i] + 8) * (levRS[i] + 8)) / (100.0 * ((levRS[i] + 1) / 2.0))));
 
-                    int food = rnd.Next((int) ((levRS[i] - 10) / 3.0), (int) (((diffs[i] + 20) / 20.0) * ((levRS[i] + 10) / 5.0)));
+                    int food = rnd.Next((int)((levRS[i] - 10) / 3.0), (int)(((diffs[i] + 20) / 20.0) * ((levRS[i] + 10) / 5.0)));
                     //this.Monitor.Log($"-------->food {food}");
 
-                    if (rnd.NextDouble() < 0.125) {
+                    if (rnd.NextDouble() < 0.125)
+                    {
                         food = -1 * food;
                     }
 
-                    if (food < -100) {
-                        price = (int) (price * 1.5);
+                    if (food < -100)
+                    {
+                        price = (int)(price * 1.5);
 
                         specialIDs[i] += "Poisonous (150%), ";
-                    } else if (food < -1000) {
-                        price = (int) (price * 2.0);
+                    }
+                    else if (food < -1000)
+                    {
+                        price = (int)(price * 2.0);
 
                         specialIDs[i] += "Deadly Poison (200%), ";
                     }
@@ -136,26 +142,37 @@ namespace ExtremeFishingOverhaul
 
                     //this.Monitor.Log($"Levs: {levR}");
 
-                    if (fTypes[i] == "mixed") {
-                        price = (int) (price * 1.5);
-                    } else if (fTypes[i] == "dart") {
-                        price = (int) (price * 1.25);
-                    } else if (fTypes[i] == "floater") {
-                        price = (int) (price * 0.8);
-                    } else {
-                        price = (int) (price * 0.6);
+                    if (fTypes[i] == "mixed")
+                    {
+                        price = (int)(price * 1.5);
+                    }
+                    else if (fTypes[i] == "dart")
+                    {
+                        price = (int)(price * 1.25);
+                    }
+                    else if (fTypes[i] == "floater")
+                    {
+                        price = (int)(price * 0.8);
+                    }
+                    else
+                    {
+                        price = (int)(price * 0.6);
                     }
 
                     //"Astral", "Elysian", "Celestial", "Angelic", "Immortal",
-                    if (rares[i]) {
+                    if (rares[i])
+                    {
                         price *= rnd.Next(2, 4);
                         food *= rnd.Next(2, 4);
-                    } else if (rare2s[i]) {
+                    }
+                    else if (rare2s[i])
+                    {
                         price *= rnd.Next(10, 20);
                         food *= rnd.Next(10, 20);
                     }
 
-                    if (price < 20) {
+                    if (price < 20)
+                    {
                         price = 20;
                     }
 
@@ -181,7 +198,7 @@ namespace ExtremeFishingOverhaul
                     string[] fields = data.Split('/');
 
 
-                    for (int i = 0; i < fIDS.Count; i++) 
+                    for (int i = 0; i < fIDS.Count; i++)
                     {
 
                         if (rnd.NextDouble() < 0.33)
@@ -232,7 +249,8 @@ namespace ExtremeFishingOverhaul
             }
         }
 
-        private void GenerateFish() {
+        private void GenerateFish()
+        {
             //this.Monitor.Log("2nd");
             bool rare = false;
             bool rare2 = false;
@@ -240,27 +258,36 @@ namespace ExtremeFishingOverhaul
 
 
 
-            for (int i = 0; i < MaxFish; i++) {
+            for (int i = 0; i < MaxFish; i++)
+            {
                 string specialID = "";
 
                 double y = rnd.NextDouble();
                 string x = "";
-                if (y < 0.5) {
+                if (y < 0.5)
+                {
                     x = names[rnd.Next(0, names.Length - 1)] + " " + n_post[rnd.Next(0, n_post.Length - 1)];
-                } else if (y < 0.8) {
+                }
+                else if (y < 0.8)
+                {
                     x = names[rnd.Next(0, names.Length - 1)] + " " + names[rnd.Next(0, names.Length - 1)] + " " + n_post[rnd.Next(0, n_post.Length - 1)];
-                } else {
+                }
+                else
+                {
                     x = names[rnd.Next(0, names.Length - 1)] + " " + names[rnd.Next(0, names.Length - 1)] + " " + names[rnd.Next(0, names.Length - 1)] + " " + n_post[rnd.Next(0, n_post.Length - 1)];
                 }
 
-                if (x.ToLower().Contains("elysian") || x.ToLower().Contains("angelic") || x.ToLower().Contains("immortal")) {
+                if (x.ToLower().Contains("elysian") || x.ToLower().Contains("angelic") || x.ToLower().Contains("immortal"))
+                {
                     rare = true;
                     //x = x.ToUpper();
                     legend[i] = true;
 
                     specialID += "Legendary (200 to 400%), ";
                     //Monitor.Log("Celestial F Created.");
-                } else if (x.ToLower().Contains("celestial") || x.ToLower().Contains("astral")) {
+                }
+                else if (x.ToLower().Contains("celestial") || x.ToLower().Contains("astral"))
+                {
                     rare2 = true;
                     //x = x.ToUpper();
                     legend2[i] = true;
@@ -274,19 +301,24 @@ namespace ExtremeFishingOverhaul
                 int diff;
                 string ft;
 
-                if (rare) {
+                if (rare)
+                {
                     diff = rnd.Next(85, 150);
                     ft = fType[rnd.Next(0, 1)];
-                } else if (rare2) {
+                }
+                else if (rare2)
+                {
                     diff = rnd.Next(135, 250);
                     ft = fType[rnd.Next(0, 1)];
-                } else {
+                }
+                else
+                {
                     diff = rnd.Next(20, 120);
                     ft = fType[rnd.Next(0, fType.Length - 1)];
                 }
 
-                diff = (int) (diff * (((levR + 100.0) / 250.0) + 0.30));
-                
+                diff = (int)(diff * (((levR + 100.0) / 250.0) + 0.30));
+
                 fIDS.Add(id);
                 diffs.Add(diff);
                 type.Add(ft);
@@ -302,7 +334,8 @@ namespace ExtremeFishingOverhaul
 
                 // Teh's Fishing Overhaul compatibility
                 FishMotionType motionType;
-                switch (ft) {
+                switch (ft)
+                {
                     case "mixed":
                         motionType = FishMotionType.MIXED;
                         break;
@@ -344,6 +377,10 @@ namespace ExtremeFishingOverhaul
 
                 config.maxFishingLevel = x;
 
+                this.Helper.WriteConfig<ModConfig>(config);
+            }
+            else if (!File.Exists($"config.json"))
+            {
                 this.Helper.WriteConfig<ModConfig>(config);
             }
 

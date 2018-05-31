@@ -134,8 +134,17 @@ namespace InfiniteInventory
 
         private void SaveEvents_BeforeSave(object sender, EventArgs e)
         {
-            iv.changeTabs(1);
-            iv.saveData();
+
+            //
+            if (iv.maxTab > 1)
+            {
+                if(iv.currTab != 1)
+                iv.changeTabs(1);
+
+                iv.saveData();
+            }
+
+
         }
 
         private void GameEvents_OneSecondTick(object sender, EventArgs e)
