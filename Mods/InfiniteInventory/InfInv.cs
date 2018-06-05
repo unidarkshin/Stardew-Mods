@@ -342,9 +342,19 @@ namespace InfiniteInventory
 
         public void changeTabs(int n)
         {
+            if (n == maxTab + 1)
+                n = 1;
+            else if (n == 0)
+                n = maxTab;
 
             if (currTab != n && n <= maxTab && n > 0)
             {
+                while (invs.Count < n)
+                {
+                    invs.Add(new List<Item>());
+
+                }
+
                 IList<Item> x = new List<Item>();
                 tb = new List<Item>();
                 int y = 1;
@@ -364,12 +374,6 @@ namespace InfiniteInventory
                 }
 
                 invs[currTab - 1] = x;
-
-                if (invs.Count < n)
-                {
-                    invs.Add(new List<Item>());
-
-                }
 
                 y = 1;
                 IList<Item> tb_n = new List<Item>();

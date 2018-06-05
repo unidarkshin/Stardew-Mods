@@ -17,7 +17,7 @@ using StardewValley.Locations;
 using System.Collections;
 using System.IO;
 
-namespace ModEntry
+namespace Sprint
 {
     /// <summary>The mod entry point.</summary>
     /// 
