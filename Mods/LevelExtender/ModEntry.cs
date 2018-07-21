@@ -24,7 +24,7 @@ namespace LevelExtender
         int[] oldXP = { 0, 0, 0, 0, 0 };
         int[] newXP = { 0, 0, 0, 0, 0 };
         bool[] old = { false, false, false, false, false };
-        int[] addedXP = { 0, 0, 0, 0, 0 };
+        //int[] addedXP = { 0, 0, 0, 0, 0 };
         int[] sLevs = { 0, 0, 0, 0, 0 };
         int[] max = { 100, 100, 100, 100, 100 };
         bool firstFade = false;
@@ -44,10 +44,30 @@ namespace LevelExtender
 
         private LEModApi API;
 
+        public LEEvents LEE;
+
+        public int[] addedXP
+        {
+            get { return _addedXP; }
+            set
+            {
+                int[] tempOXP = _addedXP;
+                _addedXP = value;
+                if (_addedXP != tempOXP)
+                {
+                    if (Context.IsWorldReady)
+                    LEE.raiseEvent();
+                }
+            }
+        }
+
+        private int[] _addedXP;
 
         public ModEntry()
         {
             instance = this;
+            addedXP = new int[]{ 0, 0, 0, 0, 0};
+            LEE = new LEEvents();
         }
 
         public override object GetApi()
@@ -105,7 +125,12 @@ namespace LevelExtender
             //helper.ConsoleCommands.Add("warp", "Sets the player's level: lev <type> <number>", this.Warp);
 
             this.Helper.Content.InvalidateCache("Data/Fish");
+            //LEE.OnXPChanged += LEE_OnXPChanged;
+        }
 
+        private void LEE_OnXPChanged(object sender, EventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         private void tellXP(string command, string[] args)
@@ -935,8 +960,21 @@ namespace LevelExtender
 
             return xTemp;
         } 
+
+        
     }
 
+    public class LEEvents
+    {
+        public event EventHandler OnXPChanged;
 
+        public void raiseEvent()
+        {
+            if (OnXPChanged != null)
+            {
+                { OnXPChanged(this, EventArgs.Empty); }
+            }
+        }
+    }
 }
 

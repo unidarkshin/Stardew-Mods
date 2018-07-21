@@ -34,5 +34,11 @@ namespace LevelExtender
         {
             return ME.getReqXP();
         }
+
+        public LEEvents getXPEvent()
+        {
+            return ME.LEE;
+        }
+
     }
 }
