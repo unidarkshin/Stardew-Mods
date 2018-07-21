@@ -31,6 +31,9 @@ namespace Sanity
         public static ModData config;
         public double sanity;
         public NetArray<int, NetInt> oXP;
+        public Texture2D aRainTex;
+
+        public Dictionary<Vector2, TerrainFeature> ters;
 
         public ModEntry()
         {
@@ -40,6 +43,9 @@ namespace Sanity
         public override void Entry(IModHelper helper)
         {
             rnd = new Random();
+            aRainTex = this.Helper.Content.Load<Texture2D>(@"blrain.png", ContentSource.ModFolder);
+            terfs = new List<ResourceClump>();
+            ters = new Dictionary<Vector2, TerrainFeature>();
 
             InputEvents.ButtonPressed += InputEvents_ButtonPressed;
             GameEvents.OneSecondTick += GameEvents_OneSecondTick;
@@ -69,16 +75,19 @@ namespace Sanity
 
             if (Math.Abs(change) > 100)
             {
-                if (change >= 0)
-                    sanity = Math.Max(sanity - 15.0, 0);
-                else
-                    sanity = Math.Min(sanity + 5.0, 100.0);
+                //if (change >= 0)
+                    //sanity = Math.Max(sanity - 15.0, 0);
+                //else
+                    //sanity = Math.Min(sanity + 5.0, 100.0);
             }
 
         }
 
         private void set_sanity(string arg1, string[] arg2)
         {
+            if (!Context.IsWorldReady || !Game1.player.isInBed.Value || Game1.IsMultiplayer)
+                return;
+
             if (int.TryParse(arg2[0], out int r) && r >= 0)
             {
                 sanity = r;
@@ -111,16 +120,58 @@ namespace Sanity
             else
                 c = Color.DeepSkyBlue;
 
-            drawBar(Game1.viewport.Width - 35, Game1.viewport.Height - 520, sanity / 100.0, c);
+            drawBar(Game1.viewport.Width - 50, Game1.viewport.Height - 520, sanity / 100.0, c);
         }
 
         private int barW = 30;
         private int barH = 200;
         private bool ignoreBP = false;
 
+        int time = 200;
+        Color col = new Color(170, 87, 254, 255);
         private void drawBar(int x, int y, double p, Color c)
         {
             SpriteBatch spriteBatch = Game1.spriteBatch;
+
+            foreach (KeyValuePair<Vector2, TerrainFeature> ter in Game1.currentLocation.terrainFeatures.Pairs)
+            {
+
+                ter.Value.draw(spriteBatch, ter.Key);
+            }
+
+            Game1.player.draw(spriteBatch);
+
+            if (sanity <= 50.0)
+            {
+                float perc = ((50.0f - (float)sanity) / 100.0f);
+
+
+
+                /* if (time <= 0)
+                 {
+                     col = new Color(rnd.Next(0, 255), rnd.Next(0, 255), rnd.Next(0, 255));
+                     Monitor.Log($"color: {col}");
+                     time = 200;
+                 }*/
+
+                spriteBatch.Draw(Game1.fadeToBlackRect, Game1.graphics.GraphicsDevice.Viewport.Bounds, col * (perc * 0.70f));
+                spriteBatch.Draw(Game1.fadeToBlackRect, Game1.graphics.GraphicsDevice.Viewport.Bounds, Color.Black * (perc + 0.1f));
+
+
+
+                //time--;
+            }
+
+            if (sanity <= 30 && Game1.player.currentLocation.IsOutdoors)
+            {
+                for (int j = 0; j < Game1.rainDrops.Length; j++)
+                {
+                    spriteBatch.Draw(aRainTex, Game1.rainDrops[j].position, Game1.getSourceRectForStandardTileSheet(aRainTex, Game1.rainDrops[j].frame, -1, -1), Color.White);
+                }
+            }
+
+            if (Game1.activeClickableMenu != null)
+                Game1.activeClickableMenu.draw(spriteBatch);
 
             Rectangle destinationRectangle = new Rectangle(x, y, barW, barH);
             spriteBatch.Draw(Game1.staminaRect, destinationRectangle, new Rectangle(0, 0, barW, barH), Color.DarkGray);
@@ -132,19 +183,18 @@ namespace Sanity
             destinationRectangle.Width = percentageWidth;
             spriteBatch.Draw(Game1.staminaRect, destinationRectangle, new Rectangle(0, 0, percentageWidth, percentageHeight), c);
 
+            
+
             if ((float)Game1.getOldMouseX() >= x && (float)Game1.getOldMouseY() >= y && (float)Game1.getOldMouseX() <= x + barW)
             {
                 Game1.drawWithBorder((int)Math.Round(sanity) + "/" + 100, Color.WhiteSmoke, Color.Red, new Vector2(x - (barW * 4), (int)(y + (barH / 2.0))));
             }
 
-            if (sanity <= 50.0 && sanity > 20.0)
-            {
-                spriteBatch.Draw(Game1.staminaRect, new Rectangle(0, 0, Game1.viewport.Width, Game1.viewport.Height), new Rectangle(0, 0, Game1.viewport.Width, Game1.viewport.Height), Color.Black * 0.2f);
-            }
-            else if (sanity <= 20.0)
-            {
-                spriteBatch.Draw(Game1.staminaRect, new Rectangle(0, 0, Game1.viewport.Width, Game1.viewport.Height), new Rectangle(0, 0, Game1.viewport.Width, Game1.viewport.Height), Color.Black * 0.5f);
-            }
+            Helper.Reflection.GetMethod(Game1.game1, "drawHUD").Invoke();
+
+
+
+            
             //Game1.spriteBatch.Draw(Game1.mouseCursors, new Vector2(Game1.getMouseX(), Game1.getMouseY()), Game1.getSourceRectForStandardTileSheet(Game1.mouseCursors, Game1.options.SnappyMenus ? 44 : 0, 16, 16), Color.White * Game1.mouseCursorTransparency, 0.0f, Vector2.Zero, Game1.pixelZoom + Game1.dialogueButtonScale / 150f, SpriteEffects.None, 0.1f);
         }
 
@@ -271,6 +321,7 @@ namespace Sanity
         }
         int c2 = 0;
         private Timer aTimer4;
+        private List<ResourceClump> terfs;
 
         private void OnTimedEvent4(object sender, ElapsedEventArgs e)
         {
@@ -317,7 +368,9 @@ namespace Sanity
             if (!Context.IsWorldReady)
                 return;
 
-            while (rnd.NextDouble() <= (0.5 - (sanity / 200.0))) // 0.25
+            isCollidingPosition();
+
+            while (rnd.NextDouble() <= (0.25 - (sanity / 200.0))) // 0.25
             {
                 applyRandomEffect();
             }
@@ -332,7 +385,8 @@ namespace Sanity
             try
             {
 
-                int x = (int)Math.Round(rnd.NextDouble() * 27);
+                int x = (int)Math.Round(rnd.NextDouble() * 26);
+                //int y = 52;
                 GameLocation loc = Game1.player.currentLocation;
 
                 switch (x)
@@ -353,14 +407,18 @@ namespace Sanity
                             loc.characters[(rnd.Next(0, loc.characters.Count - 1))].setTrajectory(new Vector2(rnd.Next(-20, 20), rnd.Next(-20, 20)));
                         break;
                     case 4:
-                        /*GameLocation loc2 = Game1.locations[rnd.Next(0, Game1.locations.Count - 1)];
-                        Vector2 tile = loc2.getRandomTile();
-
-                        while (!loc2.isTileLocationTotallyClearAndPlaceable(tile))
+                        if (rnd.NextDouble() < 0.3)
                         {
-                            tile = loc2.getRandomTile();
+                            GameLocation loc2 = Game1.locations[rnd.Next(0, Game1.locations.Count - 1)];
+                            Vector2 tile = loc2.getRandomTile();
+
+                            while (!loc2.isTileLocationTotallyClearAndPlaceable(tile))
+                            {
+                                tile = loc2.getRandomTile();
+                            }
+                            Game1.warpFarmer(loc2.Name, (int)tile.X, (int)tile.Y, true);
+                            sanity -= 5.0;
                         }
-                        Game1.warpFarmer(loc2.Name, (int)tile.X, (int)tile.Y, true);*/
                         break;
                     case 5:
                         loc.terrainFeatures.Remove(loc.getRandomTile());
@@ -437,10 +495,11 @@ namespace Sanity
                         Game1.player.takeDamage(rnd.Next(5, 20), true, new Monster());
                         break;
                     case 13:
-                        Game1.weatherForTomorrow = 3;
+                        if (rnd.NextDouble() < 0.25)
+                            Game1.weatherForTomorrow = 3;
                         break;
                     case 14:
-
+                        if(loc.IsOutdoors)
                         loc.addCharacterAtRandomLocation(Utility.getRandomTownNPC());
                         break;
                     case 15:
@@ -454,17 +513,17 @@ namespace Sanity
                     case 17:
                         Game1.player.setTrajectory(new Vector2(rnd.Next(-30, 30), rnd.Next(-30, 30)));
                         break;
-                    case 18:
+                    case 51:
                         List<NPC> n2 = new List<NPC>();
-                        
-                            foreach (NPC npc in Utility.getAllCharacters())
-                            {
-                                n2.Add(npc);
-                            }
-                        
+
+                        foreach (NPC npc in Utility.getAllCharacters())
+                        {
+                            n2.Add(npc);
+                        }
+
                         Game1.player.changeFriendship(-1, n2[rnd.Next(0, n2.Count - 1)]);
                         break;
-                    case 19:
+                    case 18:
 
                         loc.addCritter(new Cloud(loc.getRandomTile()));
                         loc.addCritter(new Rabbit(loc.getRandomTile(), true));
@@ -473,14 +532,14 @@ namespace Sanity
                         loc.addCritter(new Birdie((int)tile5.X, (int)tile5.Y));
 
                         break;
-                    case 20:
+                    case 19:
                         Vector2 tile4 = loc.getRandomTile();
                         loc.explode(tile4, rnd.Next(3, 10), Game1.player);
                         break;
-                    case 21:
+                    case 20:
                         sanity -= 5.0;
                         break;
-                    case 22:
+                    case 21:
                         for (int i = 0; i < (int)((100.0 - sanity) / 10.0); i++)
                         {
                             if (rnd.NextDouble() <= 0.5)
@@ -491,75 +550,37 @@ namespace Sanity
                         }
 
                         break;
-                    case 23:
+                    case 22:
                         Game1.player.addedSpeed = (int)(Game1.player.addedSpeed * rnd.NextDouble() * -1.0);
                         double x2 = (100.0 - sanity) / 90.0;
                         SetTimer2(rnd.Next((int)(5000 * x2), (int)(10000 * x2)), 1);
 
                         break;
-                    case 24:
-                        TerrainFeature ter = null;
+                    case 26:
                         Vector2 tile6 = loc.getRandomTile();
-                        int x3 = rnd.Next(0, 4);
-                        if (x3 == 0)
-                        {
-                            ter = new FruitTree(rnd.Next(628, 633));
-                        }
-                        else if (x3 == 1)
-                        {
-                            double y = rnd.NextDouble();
-                            if (y <= 0.33)
-                                ter = new GiantCrop(190, tile6);
-                            else if (y <= 0.66)
-                                ter = new GiantCrop(254, tile6);
-                            else
-                                ter = new GiantCrop(276, tile6);
-                        }
-                        else if (x3 == 2)
-                        {
-                            ter = new Grass(rnd.Next(1, 4), rnd.Next(1, 4));
-                        }
-                        else if (x3 == 3)
-                        {
-                            int x4 = rnd.Next(0, 7);
-                            if (x == 0)
-                                ter = new ResourceClump(600, rnd.Next(2, (int)((100.0 - sanity) / 5.0)), rnd.Next(2, (int)((100.0 - sanity) / 5.0)), tile6);
-                            if (x == 1)
-                                ter = new ResourceClump(602, rnd.Next(2, (int)((100.0 - sanity) / 5.0)), rnd.Next(2, (int)((100.0 - sanity) / 5.0)), tile6);
-                            if (x == 2)
-                                ter = new ResourceClump(622, rnd.Next(2, (int)((100.0 - sanity) / 5.0)), rnd.Next(2, (int)((100.0 - sanity) / 5.0)), tile6);
-                            if (x == 3)
-                                ter = new ResourceClump(672, rnd.Next(2, (int)((100.0 - sanity) / 5.0)), rnd.Next(2, (int)((100.0 - sanity) / 5.0)), tile6);
-                            if (x == 4)
-                                ter = new ResourceClump(752, rnd.Next(2, (int)((100.0 - sanity) / 5.0)), rnd.Next(2, (int)((100.0 - sanity) / 5.0)), tile6);
-                            if (x == 5)
-                                ter = new ResourceClump(754, rnd.Next(2, (int)((100.0 - sanity) / 5.0)), rnd.Next(2, (int)((100.0 - sanity) / 5.0)), tile6);
-                            if (x == 6)
-                                ter = new ResourceClump(756, rnd.Next(2, (int)((100.0 - sanity) / 5.0)), rnd.Next(2, (int)((100.0 - sanity) / 5.0)), tile6);
-                            if (x == 7)
-                                ter = new ResourceClump(758, rnd.Next(2, (int)((100.0 - sanity) / 5.0)), rnd.Next(2, (int)((100.0 - sanity) / 5.0)), tile6);
-                        }
-                        else if (x3 == 4)
-                        {
-                            ter = new Tree(rnd.Next(1, 7));
-                        }
+                        while (loc.terrainFeatures.ContainsKey(tile6))
+                            tile6 = loc.getRandomTile();
+
+                        loc.removeEverythingExceptCharactersFromThisTile((int)tile6.X, (int)tile6.Y);
+                        TerrainFeature ter = getRandomTF(tile6);
+
+                        //ters.Add(tile6, ter);
                         loc.terrainFeatures.Add(tile6, ter);
-                        //loc.terrainFeatures[tile6].loadSprite();
-                        if (loc.terrainFeatures[tile6] != null)
-                            loc.terrainFeatures[tile6].forceDraw();
-                        
+
+                        //Monitor.Log($"----------------->TF at {tile6}");
+
 
                         break;
-                    case 25:
+                    case 23:
                         if (rnd.NextDouble() < .01)
                         {
                             loc.debris.Add(new Debris((Item)(new StardewValley.Object(434, 1)), Utility.getRandomAdjacentOpenTile(loc.getRandomTile(), loc)));
                         }
                         break;
-                    case 26:
+                    case 24:
                         SetTimer3(rnd.Next(500, 1000), (int)((52.0 - sanity) / 2.0));
                         break;
-                    case 27:
+                    case 25:
                         SetTimer4(rnd.Next(500, 1000), (int)((52.0 - sanity) / 2.0));
                         break;
 
@@ -571,6 +592,57 @@ namespace Sanity
             {
                 Monitor.Log($"Error: {e.Message} ::: {e.StackTrace}.");
             }
+        }
+
+        public TerrainFeature getRandomTF(Vector2 tile6)
+        {
+            TerrainFeature ter = null;
+
+            int x3 = rnd.Next(0, 4);
+            if (x3 == 0)
+            {
+                ter = new FruitTree(rnd.Next(628, 633));
+            }
+            else if (x3 == 1)
+            {
+                double y = rnd.NextDouble();
+                if (y <= 0.33)
+                    ter = new GiantCrop(190, tile6);
+                else if (y <= 0.66)
+                    ter = new GiantCrop(254, tile6);
+                else
+                    ter = new GiantCrop(276, tile6);
+            }
+            else if (x3 == 2)
+            {
+                ter = new Grass(rnd.Next(1, 4), rnd.Next(1, 4));
+            }
+            else if (x3 == 3)
+            {
+                int x4 = rnd.Next(0, 7);
+                if (x4 == 0)
+                    ter = new ResourceClump(600, 2, 2, tile6);
+                if (x4 == 1)
+                    ter = new ResourceClump(602, 2, 2, tile6);
+                if (x4 == 2)
+                    ter = new ResourceClump(622, 2, 2, tile6);
+                if (x4 == 3)
+                    ter = new ResourceClump(672, 2, 2, tile6);
+                if (x4 == 4)
+                    ter = new ResourceClump(752, 2, 2, tile6);
+                if (x4 == 5)
+                    ter = new ResourceClump(754, 2, 2, tile6);
+                if (x4 == 6)
+                    ter = new ResourceClump(756, 2, 2, tile6);
+                if (x4 == 7)
+                    ter = new ResourceClump(758, 2, 2, tile6);
+            }
+            else if (x3 == 4)
+            {
+                ter = new Tree(rnd.Next(1, 7));
+            }
+
+            return ter;
         }
 
 
@@ -655,7 +727,7 @@ namespace Sanity
             {
                 if (Vector2.Distance(Game1.player.getTileLocation(), f.getTileLocation()) <= 10.0f && !(f is Monster))
                 {
-                    s += 0.1;
+                    s += 0.2;
 
                     alone = false;
                 }
@@ -672,14 +744,14 @@ namespace Sanity
             if (Game1.player.isEating)
                 s += 0.5;
             if (Game1.player.isDivorced())
-                s -= 0.3;
+                s -= 0.2;
             if (Game1.player.isEngaged())
-                s += 0.4;
+                s += 0.2;
             if (Game1.player.isInBed.Value)
                 s += 0.2;
             if (Game1.player.isMoving())
                 s -= 0.1;
-            if (Game1.player.Stamina <= (Game1.player.Stamina / 5.0f))
+            if (Game1.player.Stamina <= (Game1.player.Stamina / 4.0f))
                 s -= 0.5;
             if (Game1.player.health <= (Game1.player.health / 4.0f))
                 s -= 0.5;
@@ -716,16 +788,48 @@ namespace Sanity
             foreach (NPC npc in Utility.getAllCharacters())
             {
                 if (Game1.player.getFriendshipHeartLevelForNPC(npc.Name) >= 5)
-                    s += 0.2;
+                    s += 0.1;
             }
 
             if (!Game1.player.currentLocation.IsOutdoors)
                 s += 0.3;
             if (Game1.activeClickableMenu != null && Game1.activeClickableMenu is BobberBar)
                 s += 0.2;
-
+            if (sanity <= 30.0)
+                s -= 0.4;
+            if (sanity <= 50.0 && sanity > 30.0)
+                s -= 0.2;
 
             return s;
+        }
+
+        public void isCollidingPosition()
+        {
+            bool flag = false;
+
+            Rectangle bounds = Game1.player.GetBoundingBox();
+            bounds.Width -= 60;
+            bounds.Height -= 60;
+            bounds.X += 30;
+            bounds.Y += 30;
+            foreach (KeyValuePair<Vector2, TerrainFeature> ters in Game1.currentLocation.terrainFeatures.Pairs)
+            {
+                if (ters.Value.getBoundingBox(ters.Key).Intersects(bounds))
+                {
+                    Game1.player.health = Math.Max(Game1.player.health - 10, 0);
+                    Game1.player.addedSpeed = Game1.player.Speed * -2;
+                    sanity -= 5.0;
+
+                    //Game1.chatBox.addMessage("Cannot pass!", Color.Red);
+                    if (!flag)
+                        flag = true;
+                }
+
+            }
+            if (!flag)
+            {
+                Game1.player.addedSpeed = oSpeed;
+            }
         }
     }
 
@@ -733,6 +837,6 @@ namespace Sanity
     {
         public double sanity { get; set; } = 100.0;
         public SButton teleport { get; set; } = SButton.Home;
-        public SButton force_new_day { get; set; } = SButton.End;
+        //public SButton force_new_day { get; set; } = SButton.End;
     }
 }

@@ -10,10 +10,11 @@ namespace LevelExtender
 {
     public class LEModApi
     {
+        ModEntry ME;
 
-        public LEModApi()
+        public LEModApi(ModEntry me)
         {
-
+            ME = me;
         }
 
         //This value will offset spawn-rate by the specified amount (1 second intervals)
@@ -22,6 +23,16 @@ namespace LevelExtender
         public void spawn_rate(double osr)
         {
             overSR = osr;
+        }
+
+        public int[] currentXP()
+        {
+            return ME.getCurXP();
+        }
+
+        public int[] requiredXP()
+        {
+            return ME.getReqXP();
         }
     }
 }

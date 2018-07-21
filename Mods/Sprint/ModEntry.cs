@@ -92,7 +92,7 @@ namespace Sprint
         {
             if (!Context.IsWorldReady || Game1.activeClickableMenu != null || Game1.player.Stamina <= 0f)
                 return;
-
+            
             if (e.Button == config.sprintKey)
             {
                 sprinting = true;
@@ -114,8 +114,8 @@ namespace Sprint
 
     public class ModConfig
     {
-        public int sprintSpeedIncrease { get; set; } = 3;
-        public float staminaLossPerHalfSecond { get; set; } = 1.5f;
+        public int sprintSpeedIncrease { get; set; } = 2;
+        public float staminaLossPerHalfSecond { get; set; } = 1.0f;
         public SButton sprintKey { get; set; } = SButton.LeftControl;
 
     }

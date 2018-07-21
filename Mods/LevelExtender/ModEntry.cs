@@ -39,7 +39,7 @@ namespace LevelExtender
         bool[] olev = { false, false, false, false, false };
         bool[] shLev = { true, true, true, true, true };
         double xp_mod = 1.0;
-
+        
         bool no_mons = false;
 
         private LEModApi API;
@@ -52,7 +52,7 @@ namespace LevelExtender
 
         public override object GetApi()
         {
-            return API = new LEModApi();
+            return API = new LEModApi(this);
         }
 
         public bool CanEdit<T>(IAssetInfo asset)
@@ -918,7 +918,23 @@ namespace LevelExtender
             this.closing();
         }
 
-        
+        public int[] getCurXP()
+        {
+            return addedXP;
+        }
+
+        public int[] getReqXP()
+        {
+            int[] temp = { Game1.player.FarmingLevel, Game1.player.FishingLevel, Game1.player.ForagingLevel, Game1.player.MiningLevel, Game1.player.CombatLevel };
+            int[] xTemp = { 0, 0, 0, 0, 0 };
+
+            for (int i = 0; i < temp.Length; i++)
+            {
+                xTemp[i] = (int)(Math.Round((1000 * temp[i] + (temp[i] * temp[i] * temp[i] * 0.33)) * xp_mod));
+            }
+
+            return xTemp;
+        } 
     }
 
 
