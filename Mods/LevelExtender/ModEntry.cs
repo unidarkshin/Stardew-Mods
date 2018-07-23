@@ -46,28 +46,13 @@ namespace LevelExtender
 
         public LEEvents LEE;
 
-        public int[] addedXP
-        {
-            get { return _addedXP; }
-            set
-            {
-                int[] tempOXP = _addedXP;
-                _addedXP = value;
-                if (_addedXP != tempOXP)
-                {
-                    if (Context.IsWorldReady)
-                    LEE.raiseEvent();
-                }
-            }
-        }
-
-        private int[] _addedXP;
+        public EXP addedXP;
 
         public ModEntry()
         {
             instance = this;
-            addedXP = new int[]{ 0, 0, 0, 0, 0};
             LEE = new LEEvents();
+            addedXP = new EXP(LEE);
         }
 
         public override object GetApi()
@@ -130,7 +115,7 @@ namespace LevelExtender
 
         private void LEE_OnXPChanged(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            Monitor.Log("XP Changed");
         }
 
         private void tellXP(string command, string[] args)
@@ -854,7 +839,7 @@ namespace LevelExtender
             oldXP = new int[] { 0, 0, 0, 0, 0 };
             newXP = new int[] { 0, 0, 0, 0, 0 };
             old = new bool[] { false, false, false, false, false };
-            addedXP = new int[] { 0, 0, 0, 0, 0 };
+            addedXP.Values = new int[] { 0, 0, 0, 0, 0 };
             sLevs = new int[] { 0, 0, 0, 0, 0 };
             max = new int[] { 100, 100, 100, 100, 100 };
             firstFade = false;
@@ -945,7 +930,7 @@ namespace LevelExtender
 
         public int[] getCurXP()
         {
-            return addedXP;
+            return addedXP.Values;
         }
 
         public int[] getReqXP()
@@ -975,6 +960,54 @@ namespace LevelExtender
                 { OnXPChanged(this, EventArgs.Empty); }
             }
         }
+    }
+
+    public class EXP
+    {
+        private int[] axp;
+        LEEvents LEE;
+
+        public EXP(LEEvents lee){
+            axp = new int[]{ 0, 0, 0, 0, 0 };
+            LEE = lee;
+        }
+
+        public int this[int key]
+        {
+            get { return axp[key]; }
+
+            set
+            {
+                if (axp[key] != value)
+                {
+                    LEE.raiseEvent();
+                    axp[key] = value;
+                }
+                
+            }
+        }
+
+        public int Length
+        {
+            get { return axp.Length; }
+        }
+
+        public int[] Values
+        {
+            get { return axp; }
+            set {
+
+                for(int i = 0; i < axp.Length; i++){
+                    if (axp[i] != value[i])
+                    {
+                        LEE.raiseEvent();
+                        break;
+                    }
+                }
+                axp = value;
+            }
+        }
+
     }
 }
 

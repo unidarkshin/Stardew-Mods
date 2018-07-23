@@ -35,9 +35,10 @@ namespace LevelExtender
             return ME.getReqXP();
         }
 
-        public LEEvents getXPEvent()
+        public event EventHandler OnXPChanged
         {
-            return ME.LEE;
+            add => ME.LEE.OnXPChanged += value;
+            remove => ME.LEE.OnXPChanged -= value;
         }
 
     }
