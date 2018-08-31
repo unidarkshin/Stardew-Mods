@@ -980,8 +980,8 @@ namespace LevelExtender
             {
                 if (axp[key] != value)
                 {
-                    LEE.raiseEvent();
                     axp[key] = value;
+                    LEE.raiseEvent();
                 }
                 
             }
