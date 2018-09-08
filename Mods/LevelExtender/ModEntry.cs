@@ -103,10 +103,10 @@ namespace LevelExtender
             ControlEvents.KeyPressed += this.ControlEvent_KeyPressed;
             TimeEvents.AfterDayStarted += this.TimeEvent_AfterDayStarted;
 
-            helper.ConsoleCommands.Add("xp", "Tells the players current XP above or at level 10.", this.tellXP);
+            helper.ConsoleCommands.Add("xp", "Tells the players current XP above or at level 10.", this.TellXP);
             helper.ConsoleCommands.Add("lev", "Sets the player's level: lev <type> <number>", this.SetLev);
-            helper.ConsoleCommands.Add("wm_toggle", "Toggles monster spawning: wm_toggle", this.wmT);
-            helper.ConsoleCommands.Add("xp_m", "Changes the xp modifier for levels 10 and after: xp_m <decimal 0.0 -> ANY> : 1.0 is default.", this.xpM);
+            helper.ConsoleCommands.Add("wm_toggle", "Toggles monster spawning: wm_toggle", this.WmT);
+            helper.ConsoleCommands.Add("xp_m", "Changes the xp modifier for levels 10 and after: xp_m <decimal 0.0 -> ANY> : 1.0 is default.", this.XpM);
             //helper.ConsoleCommands.Add("warp", "Sets the player's level: lev <type> <number>", this.Warp);
 
             this.Helper.Content.InvalidateCache("Data/Fish");
@@ -118,7 +118,7 @@ namespace LevelExtender
             Monitor.Log("XP Changed");
         }
 
-        private void tellXP(string command, string[] args)
+        private void TellXP(string command, string[] args)
         {
 
             int[] temp = { Game1.player.FarmingLevel, Game1.player.FishingLevel, Game1.player.ForagingLevel, Game1.player.MiningLevel, Game1.player.CombatLevel };
@@ -146,8 +146,7 @@ namespace LevelExtender
         }
         private void SetLev(string command, string[] args)
         {
-            int n;
-            if (args[0] == null || args[1] == null || !int.TryParse(args[1], out n))
+            if (args[0] == null || args[1] == null || !int.TryParse(args[1], out int n))
             {
                 this.Monitor.Log($"Function Failed!");
                 return;
@@ -166,8 +165,8 @@ namespace LevelExtender
                 {
                     sLevs[0] = 10;
                     addedXP[0] = 0;
-                    config.faLV = 10;
-                    config.faXP = 0;
+                    config.FaLV = 10;
+                    config.FaXP = 0;
                     oldXP[0] = 0;
                     newXP[0] = 0;
                     old[0] = false;
@@ -188,8 +187,8 @@ namespace LevelExtender
                 {
                     sLevs[1] = 10;
                     addedXP[1] = 0;
-                    config.fLV = 10;
-                    config.fXP = 0;
+                    config.FLV = 10;
+                    config.FXP = 0;
                     oldXP[1] = 0;
                     newXP[1] = 0;
                     old[1] = false;
@@ -210,8 +209,8 @@ namespace LevelExtender
                 {
                     sLevs[2] = 10;
                     addedXP[2] = 0;
-                    config.foLV = 10;
-                    config.foXP = 0;
+                    config.FoLV = 10;
+                    config.FoXP = 0;
                     oldXP[2] = 0;
                     newXP[2] = 0;
                     old[2] = false;
@@ -232,8 +231,8 @@ namespace LevelExtender
                 {
                     sLevs[3] = 10;
                     addedXP[3] = 0;
-                    config.mLV = 10;
-                    config.mXP = 0;
+                    config.MLV = 10;
+                    config.MXP = 0;
                     oldXP[3] = 0;
                     newXP[3] = 0;
                     old[3] = false;
@@ -254,8 +253,8 @@ namespace LevelExtender
                 {
                     sLevs[4] = 10;
                     addedXP[4] = 0;
-                    config.cLV = 10;
-                    config.cXP = 0;
+                    config.CLV = 10;
+                    config.CXP = 0;
                     oldXP[4] = 0;
                     newXP[4] = 0;
                     old[4] = false;
@@ -271,7 +270,7 @@ namespace LevelExtender
             }
             this.Helper.Content.InvalidateCache("Data/Fish");
         }
-        private void wmT(string command, string[] args)
+        private void WmT(string command, string[] args)
         {
             if (!wm)
             {
@@ -284,7 +283,7 @@ namespace LevelExtender
                 this.Monitor.Log($"Monsters -> OFF.");
             }
         }
-        private void xpM(string command, string[] args)
+        private void XpM(string command, string[] args)
         {
             if (double.TryParse(args[0], out double x) && x > 0.0)
             {
@@ -326,7 +325,7 @@ namespace LevelExtender
                 }
             }
         }
-        public void closing()
+        public void Closing()
         {
 
             if (Game1.player.FarmingLevel >= 10 && shLev[0])
@@ -425,7 +424,7 @@ namespace LevelExtender
             pres_comp = false;
             shLev = new bool[] { true, true, true, true, true };
         }
-        private int getExp(int x)
+        private int GetExp(int x)
         {
             switch (x)
             {
@@ -524,7 +523,7 @@ namespace LevelExtender
                         if (newXP[i] - oldXP[i] > 0 && !pres_comp)
                         {
                             old[i] = false;
-                            addFishingXP(newXP[i] - oldXP[i], i);
+                            AddFishingXP(newXP[i] - oldXP[i], i);
                         }
 
                     }
@@ -558,7 +557,7 @@ namespace LevelExtender
                     }
                 }
             }
-            if (Context.IsWorldReady && !no_mons && wm && Game1.player.currentLocation.IsOutdoors && Game1.activeClickableMenu == null && rand.NextDouble() <= s_r())
+            if (Context.IsWorldReady && !no_mons && wm && Game1.player.currentLocation.IsOutdoors && Game1.activeClickableMenu == null && rand.NextDouble() <= S_r())
             {
 
                 Vector2 loc = Game1.player.currentLocation.getRandomTile();
@@ -567,7 +566,7 @@ namespace LevelExtender
                     loc = Game1.player.currentLocation.getRandomTile();
                 }
 
-                Monster m = getMonster(rand.Next(7), loc * (float)Game1.tileSize);
+                Monster m = GetMonster(rand.Next(7), loc * (float)Game1.tileSize);
                 m.DamageToFarmer = (int)(m.DamageToFarmer / 1.5) + (int)(Game1.player.CombatLevel / 3);
                 m.Health = (int)(m.Health / 1.5) + ((Game1.player.CombatLevel / 2) * (m.Health / 10));
                 m.focusedOnFarmers = true;
@@ -583,7 +582,7 @@ namespace LevelExtender
             }
 
         }
-        public double s_r()
+        public double S_r()
         {
             double x;
 
@@ -663,7 +662,7 @@ namespace LevelExtender
             no_mons = false;
         }
 
-        public void rem_mons()
+        public void Rem_mons()
         {
 
             no_mons = true;
@@ -686,7 +685,7 @@ namespace LevelExtender
             }
         }
 
-        private Monster getMonster(int x, Vector2 loc)
+        private Monster GetMonster(int x, Vector2 loc)
         {
             Monster m;
             switch (x)
@@ -726,18 +725,18 @@ namespace LevelExtender
         {
             //object[] temp = { Game1.player.FarmingLevel, Game1.player.FishingLevel, Game1.player.ForagingLevel, Game1.player.MiningLevel, Game1.player.CombatLevel };
             var config_t = this.Helper.ReadJsonFile<ModData>($"data/{Constants.SaveFolderName}.json") ?? new ModData();
-            addedXP[0] = config_t.faXP;
-            sLevs[0] = config_t.faLV;
-            addedXP[1] = config_t.fXP;
-            sLevs[1] = config_t.fLV;
-            addedXP[2] = config_t.foXP;
-            sLevs[2] = config_t.foLV;
-            addedXP[3] = config_t.mXP;
-            sLevs[3] = config_t.mLV;
-            addedXP[4] = config_t.cXP;
-            sLevs[4] = config_t.cLV;
-            wm = config_t.worldMonsters;
-            xp_mod = config_t.xp_modifier;
+            addedXP[0] = config_t.FaXP;
+            sLevs[0] = config_t.FaLV;
+            addedXP[1] = config_t.FXP;
+            sLevs[1] = config_t.FLV;
+            addedXP[2] = config_t.FoXP;
+            sLevs[2] = config_t.FoLV;
+            addedXP[3] = config_t.MXP;
+            sLevs[3] = config_t.MLV;
+            addedXP[4] = config_t.CXP;
+            sLevs[4] = config_t.CLV;
+            wm = config_t.WorldMonsters;
+            xp_mod = config_t.Xp_modifier;
 
             config = config_t;
 
@@ -781,8 +780,8 @@ namespace LevelExtender
             {
 
                 Game1.player.FarmingLevel = sLevs[0];
-                config.faXP = addedXP[0];
-                config.faLV = sLevs[0];
+                config.FaXP = addedXP[0];
+                config.FaLV = sLevs[0];
 
                 this.Monitor.Log($"{Game1.player.Name} saved farming level {Game1.player.FarmingLevel}!");
             }
@@ -790,8 +789,8 @@ namespace LevelExtender
             {
 
                 Game1.player.FishingLevel = sLevs[1];
-                config.fXP = addedXP[1];
-                config.fLV = sLevs[1];
+                config.FXP = addedXP[1];
+                config.FLV = sLevs[1];
 
                 this.Monitor.Log($"{Game1.player.Name} saved fishing level {Game1.player.FishingLevel}!");
             }
@@ -799,8 +798,8 @@ namespace LevelExtender
             {
 
                 Game1.player.ForagingLevel = sLevs[2];
-                config.foXP = addedXP[2];
-                config.foLV = sLevs[2];
+                config.FoXP = addedXP[2];
+                config.FoLV = sLevs[2];
 
                 this.Monitor.Log($"{Game1.player.Name} saved foraging level {Game1.player.ForagingLevel}!");
             }
@@ -808,8 +807,8 @@ namespace LevelExtender
             {
 
                 Game1.player.MiningLevel = sLevs[3];
-                config.mXP = addedXP[3];
-                config.mLV = sLevs[3];
+                config.MXP = addedXP[3];
+                config.MLV = sLevs[3];
 
                 this.Monitor.Log($"{Game1.player.Name} saved mining level {Game1.player.MiningLevel}!");
             }
@@ -817,13 +816,13 @@ namespace LevelExtender
             {
 
                 Game1.player.CombatLevel = sLevs[4];
-                config.cXP = addedXP[4];
-                config.cLV = sLevs[4];
+                config.CXP = addedXP[4];
+                config.CLV = sLevs[4];
 
                 this.Monitor.Log($"{Game1.player.Name} saved combat level {Game1.player.CombatLevel}!");
             }
-            config.worldMonsters = wm;
-            config.xp_modifier = xp_mod;
+            config.WorldMonsters = wm;
+            config.Xp_modifier = xp_mod;
 
             this.Helper.WriteJsonFile<ModData>($"data/{Constants.SaveFolderName}.json", config);
 
@@ -831,7 +830,7 @@ namespace LevelExtender
 
             if (!no_mons)
             {
-                rem_mons();
+                Rem_mons();
             }
         }
         private void SaveEvents_AfterReturnToTitle(object sender, EventArgs e)
@@ -856,7 +855,7 @@ namespace LevelExtender
             shLev = new bool[] { true, true, true, true, true };
             xp_mod = 1.0;
         }
-        private void addFishingXP(int xp, int i)
+        private void AddFishingXP(int xp, int i)
         {
             int[] temp = { Game1.player.FarmingLevel, Game1.player.FishingLevel, Game1.player.ForagingLevel, Game1.player.MiningLevel, Game1.player.CombatLevel };
             this.Monitor.Log($"Adding XP: {xp}");
@@ -925,15 +924,15 @@ namespace LevelExtender
         }
         private void OnTimedEvent(object source, ElapsedEventArgs e)
         {
-            this.closing();
+            this.Closing();
         }
 
-        public int[] getCurXP()
+        public int[] GetCurXP()
         {
             return addedXP.Values;
         }
 
-        public int[] getReqXP()
+        public int[] GetReqXP()
         {
             int[] temp = { Game1.player.FarmingLevel, Game1.player.FishingLevel, Game1.player.ForagingLevel, Game1.player.MiningLevel, Game1.player.CombatLevel };
             int[] xTemp = { 0, 0, 0, 0, 0 };
@@ -953,7 +952,7 @@ namespace LevelExtender
     {
         public event EventHandler OnXPChanged;
 
-        public void raiseEvent()
+        public void RaiseEvent()
         {
             if (OnXPChanged != null)
             {
@@ -981,7 +980,7 @@ namespace LevelExtender
                 if (axp[key] != value)
                 {
                     axp[key] = value;
-                    LEE.raiseEvent();
+                    LEE.RaiseEvent();
                 }
                 
             }
@@ -1000,7 +999,7 @@ namespace LevelExtender
                 for(int i = 0; i < axp.Length; i++){
                     if (axp[i] != value[i])
                     {
-                        LEE.raiseEvent();
+                        LEE.RaiseEvent();
                         break;
                     }
                 }

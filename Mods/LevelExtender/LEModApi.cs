@@ -20,19 +20,19 @@ namespace LevelExtender
         //This value will offset spawn-rate by the specified amount (1 second intervals)
         public double overSR = -1.0;
 
-        public void spawn_rate(double osr)
+        public void Spawn_rate(double osr)
         {
             overSR = osr;
         }
 
-        public int[] currentXP()
+        public int[] CurrentXP()
         {
-            return ME.getCurXP();
+            return ME.GetCurXP();
         }
 
-        public int[] requiredXP()
+        public int[] RequiredXP()
         {
-            return ME.getReqXP();
+            return ME.GetReqXP();
         }
 
         public event EventHandler OnXPChanged
