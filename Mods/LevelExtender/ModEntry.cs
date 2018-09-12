@@ -142,7 +142,7 @@ namespace LevelExtender
             {
                 this.Monitor.Log($"Current XP - Default: {Game1.player.experiencePoints[i]}.");
             }
-
+            
         }
         private void SetLev(string command, string[] args)
         {
@@ -671,15 +671,12 @@ namespace LevelExtender
             for (int j = 0; j < Game1.locations.Count; j++)
             {
                 //Game1.locations[j].cleanupBeforeSave();
-
                 IList<NPC> characters = Game1.locations[j].characters;
-                for (int i = 0; i < characters.Count; i++)
+                for (int i = 0; i < characters.Count; i--)
                 {
                     if (characters[i] is Monster && (characters[i] as Monster).wildernessFarmMonster)
                     {
                         characters.RemoveAt(i);
-
-
                     }
                 }
             }
