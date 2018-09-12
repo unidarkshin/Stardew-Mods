@@ -35,6 +35,8 @@ namespace Sprint
         public ModEntry()
         {
             instance = this;
+
+
         }
 
         public override void Entry(IModHelper helper)
@@ -53,11 +55,11 @@ namespace Sprint
 
         private void SaveEvents_AfterLoad(object sender, EventArgs e)
         {
-            config = instance.Helper.Data.ReadJsonFile<ModConfig>($"Data/{Constants.SaveFolderName}.json") ?? new ModConfig();
+            config = instance.Helper.ReadJsonFile<ModConfig>($"Data/{Constants.SaveFolderName}.json") ?? new ModConfig();
             factor = config.SprintSpeedIncrease;
 
             if (!File.Exists($"Data/{Constants.SaveFolderName}.json"))
-                instance.Helper.Data.WriteJsonFile<ModConfig>($"Data/{Constants.SaveFolderName}.json", config);
+                instance.Helper.WriteJsonFile<ModConfig>($"Data/{Constants.SaveFolderName}.json", config);
         }
 
         private void GameEvents_HalfSecondTick(object sender, EventArgs e)

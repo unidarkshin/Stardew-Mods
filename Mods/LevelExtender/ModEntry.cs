@@ -673,7 +673,7 @@ namespace LevelExtender
                 //Game1.locations[j].cleanupBeforeSave();
 
                 IList<NPC> characters = Game1.locations[j].characters;
-                for (int i = 0; i < characters.Count; i++)
+                for (int i = 0; i < characters.Count; i--)
                 {
                     if (characters[i] is Monster && (characters[i] as Monster).wildernessFarmMonster)
                     {
