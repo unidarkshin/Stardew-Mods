@@ -127,7 +127,7 @@ namespace LevelExtender
             }
 
             s_mod = n;
-            Monitor.Log($"Modifier set to {n * 10}%.");
+            Monitor.Log($"Modifier set to {n * 100}%.");
             
         }
 
