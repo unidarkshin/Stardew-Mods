@@ -47,12 +47,16 @@ namespace LevelExtender
         public LEEvents LEE;
 
         public EXP addedXP;
+        private int total_m;
+        private double s_mod;
 
         public ModEntry()
         {
             instance = this;
             LEE = new LEEvents();
             addedXP = new EXP(LEE);
+            total_m = 0;
+            s_mod = -1.0;
         }
 
         public override object GetApi()
@@ -107,10 +111,24 @@ namespace LevelExtender
             helper.ConsoleCommands.Add("lev", "Sets the player's level: lev <type> <number>", this.SetLev);
             helper.ConsoleCommands.Add("wm_toggle", "Toggles monster spawning: wm_toggle", this.WmT);
             helper.ConsoleCommands.Add("xp_m", "Changes the xp modifier for levels 10 and after: xp_m <decimal 0.0 -> ANY> : 1.0 is default.", this.XpM);
+            helper.ConsoleCommands.Add("spawn_modifier", "Forcefully changes mosnter spawn rate to specified decimal value: spawn_modifier <decimal(percent)> : -1.0 to not have any effect.", this.SM);
             //helper.ConsoleCommands.Add("warp", "Sets the player's level: lev <type> <number>", this.Warp);
 
             this.Helper.Content.InvalidateCache("Data/Fish");
             //LEE.OnXPChanged += LEE_OnXPChanged;
+        }
+
+        private void SM(string command, string[] args)
+        {
+            if(args.Length < 1 || args[0] == null || !double.TryParse(args[0], out double n))
+            {
+                Monitor.Log("No decimal value found.");
+                return;
+            }
+
+            s_mod = n;
+            Monitor.Log($"Modifier set to {n * 10}%.");
+            
         }
 
         private void LEE_OnXPChanged(object sender, EventArgs e)
@@ -566,19 +584,40 @@ namespace LevelExtender
                     loc = Game1.player.currentLocation.getRandomTile();
                 }
 
-                Monster m = GetMonster(rand.Next(7), loc * (float)Game1.tileSize);
+                int tier = rand.Next(0, 8);
+
+                Monster m = GetMonster(tier, loc * (float)Game1.tileSize);
+
+                if (tier == 8)
+                {
+                    tier = 5;
+                    m.resilience.Value += 20;
+                    m.Slipperiness += rand.Next(10) + 5;
+                    m.coinsToDrop.Value = rand.Next(10) * 50;
+
+                    var data = Game1.content.Load<Dictionary<int, string>>("Data\\ObjectInformation");
+                    //Item item = new StardewValley.Object(rand.Next(data.Count), 1);
+
+                    m.objectsToDrop.Add(rand.Next(data.Count));
+                    
+                }
+                else
+                {
+                    tier = 1;
+                }
+
                 m.DamageToFarmer = (int)(m.DamageToFarmer / 1.5) + (int)(Game1.player.CombatLevel / 3);
                 m.Health = (int)(m.Health / 1.5) + ((Game1.player.CombatLevel / 2) * (m.Health / 10));
                 m.focusedOnFarmers = true;
                 m.wildernessFarmMonster = true;
                 m.Speed += rand.Next(3 + Game1.player.CombatLevel);
                 m.resilience.Set(m.resilience.Value + (Game1.player.CombatLevel / 10));
-                m.ExperienceGained += (Game1.player.CombatLevel / 2);
+                m.ExperienceGained += ((10 + (Game1.player.CombatLevel * 2)) * tier);
 
                 IList<NPC> characters = Game1.currentLocation.characters;
                 characters.Add((NPC)m);
 
-
+                total_m++;
             }
 
         }
@@ -586,7 +625,11 @@ namespace LevelExtender
         {
             double x;
 
-            if (API.overSR == -1.0)
+            if(s_mod != -1.0)
+            {
+                return s_mod;
+            }
+            else if (API.overSR == -1.0)
             {
                 if (Game1.player.CombatLevel == 0 && !Game1.isDarkOut())
                 {
@@ -667,19 +710,22 @@ namespace LevelExtender
 
             no_mons = true;
 
-            Monitor.Log("Removed Monsters.");
-            for (int j = 0; j < Game1.locations.Count; j++)
+            //Monitor.Log("Removed Monsters.");
+
+            int x = 0;
+            int y;
+            foreach (GameLocation location in Game1.locations)
             {
-                //Game1.locations[j].cleanupBeforeSave();
-                IList<NPC> characters = Game1.locations[j].characters;
-                for (int i = 0; i < characters.Count; i--)
-                {
-                    if (characters[i] is Monster && (characters[i] as Monster).wildernessFarmMonster)
-                    {
-                        characters.RemoveAt(i);
-                    }
-                }
+                y = location.characters.Count;
+
+                location.characters.Filter(f => !(f is Monster monster) || !monster.wildernessFarmMonster);
+
+                x += (y - location.characters.Count);
             }
+
+            Monitor.Log($"Removed | {x} | / | {total_m} | monsters.");
+
+            total_m = 0;
         }
 
         private Monster GetMonster(int x, Vector2 loc)
@@ -711,6 +757,28 @@ namespace LevelExtender
                 case 7:
                     m = new ShadowBrute(loc);
                     break;
+                case 8:
+                    int y = rand.Next(1, 6);
+
+                    //m = new Monster();
+
+                    if (y == 1)
+                        m = new RockCrab(loc, "Iridium Crab");
+                    else if (y == 2)
+                        m = new Ghost(loc, "Carbon Ghost");
+                    else if (y == 3)
+                        m = new LavaCrab(loc);
+                    //else if (y == 4)
+                    //m = new Bat(loc, Math.Max(Game1.player.CombatLevel * 5, 50));
+                    else if (y == 4)
+                        m = new GreenSlime(loc, Math.Max(Game1.player.CombatLevel * 5, 50));
+                    else if (y == 5)
+                        m = new BigSlime(loc, Math.Max(Game1.player.CombatLevel * 5, 50));
+                    else
+                        m = new Mummy(loc);
+
+                    break;
+
                 default:
                     m = new Monster();
                     break;
@@ -823,12 +891,13 @@ namespace LevelExtender
 
             this.Helper.WriteJsonFile<ModData>($"data/{Constants.SaveFolderName}.json", config);
 
-            
+
 
             if (!no_mons)
             {
                 Rem_mons();
             }
+
         }
         private void SaveEvents_AfterReturnToTitle(object sender, EventArgs e)
         {
