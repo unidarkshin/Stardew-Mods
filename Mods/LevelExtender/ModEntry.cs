@@ -39,7 +39,7 @@ namespace LevelExtender
         bool[] olev = { false, false, false, false, false };
         bool[] shLev = { true, true, true, true, true };
         double xp_mod = 1.0;
-        
+
         bool no_mons = false;
 
         private LEModApi API;
@@ -112,15 +112,24 @@ namespace LevelExtender
             helper.ConsoleCommands.Add("wm_toggle", "Toggles monster spawning: wm_toggle", this.WmT);
             helper.ConsoleCommands.Add("xp_m", "Changes the xp modifier for levels 10 and after: xp_m <decimal 0.0 -> ANY> : 1.0 is default.", this.XpM);
             helper.ConsoleCommands.Add("spawn_modifier", "Forcefully changes mosnter spawn rate to specified decimal value: spawn_modifier <decimal(percent)> : -1.0 to not have any effect.", this.SM);
-            //helper.ConsoleCommands.Add("warp", "Sets the player's level: lev <type> <number>", this.Warp);
+            helper.ConsoleCommands.Add("xp_table", "Displays the xp table for every level.", this.XPT);
 
             this.Helper.Content.InvalidateCache("Data/Fish");
             //LEE.OnXPChanged += LEE_OnXPChanged;
         }
 
+        private void XPT(string arg1, string[] arg2)
+        {
+            Monitor.Log("Level:  |  Experience:");
+            for (int i = 10; i < 100; i++)
+            {
+                Monitor.Log($"     {i} | {Math.Round((1000 * i + (i * i * i * 0.33)) * xp_mod)}");
+            }
+        }
+
         private void SM(string command, string[] args)
         {
-            if(args.Length < 1 || args[0] == null || !double.TryParse(args[0], out double n))
+            if (args.Length < 1 || args[0] == null || !double.TryParse(args[0], out double n))
             {
                 Monitor.Log("No decimal value found.");
                 return;
@@ -128,7 +137,7 @@ namespace LevelExtender
 
             s_mod = n;
             Monitor.Log($"Modifier set to {n * 100}%.");
-            
+
         }
 
         private void LEE_OnXPChanged(object sender, EventArgs e)
@@ -160,7 +169,7 @@ namespace LevelExtender
             {
                 this.Monitor.Log($"Current XP - Default: {Game1.player.experiencePoints[i]}.");
             }
-            
+
         }
         private void SetLev(string command, string[] args)
         {
@@ -575,7 +584,7 @@ namespace LevelExtender
                     }
                 }
             }
-            if (Context.IsWorldReady && !no_mons && wm && Game1.player.currentLocation.IsOutdoors && Game1.activeClickableMenu == null && rand.NextDouble() <= S_r())
+            if (Context.IsWorldReady && !no_mons && wm && Game1.player.currentLocation.IsOutdoors && Game1.activeClickableMenu == null && rand.NextDouble() <= S_R())
             {
 
                 Vector2 loc = Game1.player.currentLocation.getRandomTile();
@@ -594,12 +603,13 @@ namespace LevelExtender
                     m.resilience.Value += 20;
                     m.Slipperiness += rand.Next(10) + 5;
                     m.coinsToDrop.Value = rand.Next(10) * 50;
+                    m.startGlowing(new Color(rand.Next(0, 255), rand.Next(0, 255), rand.Next(0, 255)), true, 1.0f);
 
                     var data = Game1.content.Load<Dictionary<int, string>>("Data\\ObjectInformation");
                     //Item item = new StardewValley.Object(rand.Next(data.Count), 1);
 
                     m.objectsToDrop.Add(rand.Next(data.Count));
-                    
+
                 }
                 else
                 {
@@ -621,54 +631,33 @@ namespace LevelExtender
             }
 
         }
-        public double S_r()
+        public double S_R()
         {
-            double x;
+            if (Game1.player.CombatLevel == 0)
+            {
+                return 0.0;
+            }
 
-            if(s_mod != -1.0)
+            if (s_mod != -1.0)
             {
                 return s_mod;
             }
-            else if (API.overSR == -1.0)
+            else if (API.overSR != -1.0)
             {
-                if (Game1.player.CombatLevel == 0 && !Game1.isDarkOut())
-                {
-                    return 0.0;
-                }
-
-                if (Game1.isDarkOut() || Game1.isRaining)
-                {
-                    return (0.010 + (Game1.player.CombatLevel * 0.0001)) * 2;
-                }
-
-                return (0.010 + (Game1.player.CombatLevel * 0.0001));
-
-            }
-            else
-            {
-                if (Game1.player.CombatLevel == 0 && !Game1.isDarkOut())
-                {
-                    x = 0.0;
-                }
-
-                else if (Game1.isDarkOut() || Game1.isRaining)
-                {
-                    x = (0.010 + (Game1.player.CombatLevel * 0.0001)) * 2;
-                }
-
-                else
-                {
-                    x = (0.010 + (Game1.player.CombatLevel * 0.0001));
-                }
-
+                return API.overSR;
             }
 
-            return x + API.overSR;
+            if (Game1.isDarkOut() || Game1.isRaining)
+            {
+                return (0.010 + (Game1.player.CombatLevel * 0.0001)) * 2;
+            }
+
+            return (0.010 + (Game1.player.CombatLevel * 0.0001));
 
         }
         private void GameEvents_QuarterSecondTick(object sender, EventArgs e)
         {
-            if (Context.IsWorldReady && Game1.player.FishingLevel > 10) 
+            if (Context.IsWorldReady && Game1.player.FishingLevel > 10)
             {
                 if (Game1.activeClickableMenu is BobberBar && !firstFade)
                 {
@@ -678,7 +667,7 @@ namespace LevelExtender
                     this.Monitor.Log($"{this.Helper.Reflection.GetField<int>(Game1.activeClickableMenu, "bobberBarHeight").GetValue()} -SIZE.");
                     this.Helper.Reflection.GetField<int>(Game1.activeClickableMenu, "bobberBarHeight").SetValue(176);
                     this.Helper.Reflection.GetField<float>(Game1.activeClickableMenu, "bobberBarPos").SetValue((float)(568 - 176));
-                    
+
 
                 }
                 else if (!(Game1.activeClickableMenu is BobberBar) && firstFade)
@@ -693,7 +682,7 @@ namespace LevelExtender
                     {
                         float dist = this.Helper.Reflection.GetField<float>(Game1.activeClickableMenu, "distanceFromCatching").GetValue();
                         this.Helper.Reflection.GetField<float>(Game1.activeClickableMenu, "distanceFromCatching").SetValue(dist + ((float)(Game1.player.FishingLevel - 10) / 22000.0f));
-                        
+
                     }
                 }
             }
@@ -909,10 +898,10 @@ namespace LevelExtender
             max = new int[] { 100, 100, 100, 100, 100 };
             firstFade = false;
             config = new ModData();
-            
+
             origLevs = new int[] { 0, 0, 0, 0, 0 };
             origExp = new int[] { 0, 0, 0, 0, 0 };
-            
+
             wm = new bool();
             pres_comp = false;
             oldLevs = new int[] { 0, 0, 0, 0, 0 };
@@ -1009,9 +998,9 @@ namespace LevelExtender
             }
 
             return xTemp;
-        } 
+        }
 
-        
+
     }
 
     public class LEEvents
@@ -1032,8 +1021,9 @@ namespace LevelExtender
         private int[] axp;
         LEEvents LEE;
 
-        public EXP(LEEvents lee){
-            axp = new int[]{ 0, 0, 0, 0, 0 };
+        public EXP(LEEvents lee)
+        {
+            axp = new int[] { 0, 0, 0, 0, 0 };
             LEE = lee;
         }
 
@@ -1048,7 +1038,7 @@ namespace LevelExtender
                     axp[key] = value;
                     LEE.RaiseEvent();
                 }
-                
+
             }
         }
 
@@ -1060,9 +1050,11 @@ namespace LevelExtender
         public int[] Values
         {
             get { return axp; }
-            set {
+            set
+            {
 
-                for(int i = 0; i < axp.Length; i++){
+                for (int i = 0; i < axp.Length; i++)
+                {
                     if (axp[i] != value[i])
                     {
                         LEE.RaiseEvent();

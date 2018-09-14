@@ -20,7 +20,7 @@ namespace LevelExtender
         //This value will offset spawn-rate by the specified amount (1 second intervals)
         public double overSR = -1.0;
 
-        public void Spawn_rate(double osr)
+        public void Spawn_Rate(double osr)
         {
             overSR = osr;
         }
