@@ -48,6 +48,7 @@
     <Compile Include="LEModApi.cs" />
     <Compile Include="ModData.cs" />
     <Compile Include="ModEntry.cs" />
+    <Compile Include="MPModApi.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

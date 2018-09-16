@@ -50,6 +50,12 @@ namespace LevelExtender
         private int total_m;
         private double s_mod;
 
+        public MPModApi mpmod;
+        private bool mpload;
+        private double mpMult;
+
+        private Timer aTimer2 = new Timer();
+
         public ModEntry()
         {
             instance = this;
@@ -57,6 +63,8 @@ namespace LevelExtender
             addedXP = new EXP(LEE);
             total_m = 0;
             s_mod = -1.0;
+            mpload = false;
+            mpMult = 1.0;
         }
 
         public override object GetApi()
@@ -99,6 +107,7 @@ namespace LevelExtender
             //instance = this;
             GameEvents.OneSecondTick += this.GameEvents_OneSecondTick;
             GameEvents.EighthUpdateTick += this.GameEvents_QuarterSecondTick;
+            GameEvents.FirstUpdateTick += GameEvents_FirstUpdateTick;
             SaveEvents.AfterLoad += this.SaveEvents_AfterLoad;
             SaveEvents.BeforeSave += this.SaveEvents_BeforeSave;
             SaveEvents.AfterReturnToTitle += this.SaveEvents_AfterReturnToTitle;
@@ -116,6 +125,32 @@ namespace LevelExtender
 
             this.Helper.Content.InvalidateCache("Data/Fish");
             //LEE.OnXPChanged += LEE_OnXPChanged;
+            
+
+        }
+
+        private void GameEvents_FirstUpdateTick(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void SetTimer(int time)
+        {
+            // Create a timer with a two second interval.
+            aTimer2 = new System.Timers.Timer(time);
+            // Hook up the Elapsed event for the timer. 
+                aTimer2.Elapsed += OnTimedEvent2;
+
+            aTimer2.AutoReset = false;
+            aTimer2.Enabled = true;
+
+
+        }
+
+        private void OnTimedEvent2(object sender, ElapsedEventArgs e)
+        {
+            mpMult = mpmod.Exp_Rate();
+            aTimer2.Enabled = false;
         }
 
         private void XPT(string arg1, string[] arg2)
@@ -690,8 +725,17 @@ namespace LevelExtender
         }
         private void TimeEvent_AfterDayStarted(object sender, EventArgs e)
         {
-
-            no_mons = false;
+            if (!mpload && this.Helper.ModRegistry.IsLoaded("f1r3w477.Level_Extender"))
+            {
+                mpmod = this.Helper.ModRegistry.GetApi<MPModApi>("f1r3w477.Level_Extender");
+                mpload = true;
+                SetTimer(1000);
+            }
+            else if (mpload)
+            {
+                SetTimer(1000);
+            }
+                no_mons = false;
         }
 
         public void Rem_mons()
@@ -913,8 +957,8 @@ namespace LevelExtender
         private void AddFishingXP(int xp, int i)
         {
             int[] temp = { Game1.player.FarmingLevel, Game1.player.FishingLevel, Game1.player.ForagingLevel, Game1.player.MiningLevel, Game1.player.CombatLevel };
-            this.Monitor.Log($"Adding XP: {xp}");
-            addedXP[i] += xp;
+            this.Monitor.Log($"Adding XP: {xp * mpMult}");
+            addedXP[i] += (int)(xp * mpMult);
             if ((addedXP[i] >= Math.Round((1000 * temp[i] + (temp[i] * temp[i] * temp[i] * 0.33)) * xp_mod)) && sLevs[i] < max[i])
             {
                 addedXP[i] = 0;
