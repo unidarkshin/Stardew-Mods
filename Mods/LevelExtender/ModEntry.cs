@@ -661,7 +661,7 @@ namespace LevelExtender
 
                 IList<NPC> characters = Game1.currentLocation.characters;
                 characters.Add((NPC)m);
-
+                
                 total_m++;
             }
 
