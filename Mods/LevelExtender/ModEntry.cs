@@ -50,6 +50,12 @@ namespace LevelExtender
         private int total_m;
         private double s_mod;
 
+        public MPModApi mpmod;
+        private bool mpload;
+        private double mpMult;
+
+        private Timer aTimer2 = new Timer();
+
         public ModEntry()
         {
             instance = this;
@@ -57,6 +63,8 @@ namespace LevelExtender
             addedXP = new EXP(LEE);
             total_m = 0;
             s_mod = -1.0;
+            mpload = false;
+            mpMult = 1.0;
         }
 
         public override object GetApi()
@@ -73,39 +81,34 @@ namespace LevelExtender
         /// <param name="asset">A helper which encapsulates metadata about an asset and enables changes to it.</param>
         public void Edit<T>(IAssetData asset)
         {
-            asset
-                .AsDictionary<int, string>()
-                .Set((id, data) =>
+            IDictionary<int, string> data = asset.AsDictionary<int, string>().Data;
+            foreach (int key in data.Keys)
+            {
+                string[] fields = data[key].Split('/');
+                if (int.TryParse(fields[1], out int val))
                 {
-                    string[] fields = data.Split('/');
-                    if (int.TryParse(fields[1], out int val))
-                    {
-                        int x = (val - rand.Next(0, (int)(Game1.player.FishingLevel / 4)));
-                        if (x < 1)
-                            x = rand.Next(1, val);
-                        fields[1] = x.ToString();
-                        return string.Join("/", fields);
-                    }
-                    else
-                    {
-                        return string.Join("/", fields);
-                    }
-                });
+                    int x = (val - rand.Next(0, (int)(Game1.player.FishingLevel / 4)));
+                    if (x < 1)
+                        x = rand.Next(1, val);
+                    fields[1] = x.ToString();
+                    data[key] = string.Join("/", fields);
+                }
+            }
         }
 
 
         public override void Entry(IModHelper helper)
         {
             //instance = this;
-            GameEvents.OneSecondTick += this.GameEvents_OneSecondTick;
-            GameEvents.EighthUpdateTick += this.GameEvents_QuarterSecondTick;
-            SaveEvents.AfterLoad += this.SaveEvents_AfterLoad;
-            SaveEvents.BeforeSave += this.SaveEvents_BeforeSave;
-            SaveEvents.AfterReturnToTitle += this.SaveEvents_AfterReturnToTitle;
-            MenuEvents.MenuChanged += this.MenuEvents_MenuChanged;
-            MenuEvents.MenuClosed += this.MenuEvents_MenuClosed;
-            ControlEvents.KeyPressed += this.ControlEvent_KeyPressed;
-            TimeEvents.AfterDayStarted += this.TimeEvent_AfterDayStarted;
+            helper.Events.GameLoop.OneSecondUpdateTicked += this.GameEvents_OneSecondTick;
+            helper.Events.GameLoop.UpdateTicked += this.GameEvents_QuarterSecondTick;
+            helper.Events.GameLoop.GameLaunched += this.GameEvents_FirstUpdateTick;
+            helper.Events.GameLoop.SaveLoaded += this.SaveEvents_AfterLoad;
+            helper.Events.GameLoop.Saving += this.SaveEvents_BeforeSave;
+            helper.Events.GameLoop.ReturnedToTitle += this.SaveEvents_AfterReturnToTitle;
+            helper.Events.Display.MenuChanged += Display_MenuChanged;
+            helper.Events.Input.ButtonPressed += this.ControlEvent_KeyPressed;
+            helper.Events.GameLoop.DayStarted += this.TimeEvent_AfterDayStarted;
 
             helper.ConsoleCommands.Add("xp", "Tells the players current XP above or at level 10.", this.TellXP);
             helper.ConsoleCommands.Add("lev", "Sets the player's level: lev <type> <number>", this.SetLev);
@@ -116,6 +119,32 @@ namespace LevelExtender
 
             this.Helper.Content.InvalidateCache("Data/Fish");
             //LEE.OnXPChanged += LEE_OnXPChanged;
+            
+
+        }
+
+        private void GameEvents_FirstUpdateTick(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void SetTimer(int time)
+        {
+            // Create a timer with a two second interval.
+            aTimer2 = new System.Timers.Timer(time);
+            // Hook up the Elapsed event for the timer. 
+                aTimer2.Elapsed += OnTimedEvent2;
+
+            aTimer2.AutoReset = false;
+            aTimer2.Enabled = true;
+
+
+        }
+
+        private void OnTimedEvent2(object sender, ElapsedEventArgs e)
+        {
+            mpMult = mpmod.Exp_Rate();
+            aTimer2.Enabled = false;
         }
 
         private void XPT(string arg1, string[] arg2)
@@ -322,30 +351,26 @@ namespace LevelExtender
                 this.Monitor.Log($"Valid decimal not used; refer to help command.");
             }
         }
-        private void MenuEvents_MenuChanged(object sender, EventArgsClickableMenuChanged e)
-        {
-
-        }
-        private void MenuEvents_MenuClosed(object sender, EventArgsClickableMenuClosed e)
+        private void Display_MenuChanged(object sender, MenuChangedEventArgs e)
         {
             if (pres_comp)
             {
-                if (e.PriorMenu.GetType().FullName == "SkillPrestige.Menus.PrestigeMenu")
+                if (e.OldMenu.GetType().FullName == "SkillPrestige.Menus.PrestigeMenu")
                 {
                     //closing();
                     SetTimer();
                 }
-                else if (e.PriorMenu.GetType().FullName == "StardewValley.Menus.GameMenu")
+                else if (e.OldMenu.GetType().FullName == "StardewValley.Menus.GameMenu")
                 {
                     //closing();
                     SetTimer();
                 }
-                else if (e.PriorMenu.GetType().FullName == "SkillPrestige.Menus.SettingsMenu")
+                else if (e.OldMenu.GetType().FullName == "SkillPrestige.Menus.SettingsMenu")
                 {
                     //closing();
                     SetTimer();
                 }
-                else if (e.PriorMenu.GetType().FullName == "SkillPrestige.Menus.Dialogs.WarningDialog")
+                else if (e.OldMenu.GetType().FullName == "SkillPrestige.Menus.Dialogs.WarningDialog")
                 {
                     //closing();
                     SetTimer();
@@ -491,10 +516,10 @@ namespace LevelExtender
             }
             return x;
         }
-        private void ControlEvent_KeyPressed(object sender, EventArgsKeyPressed e)
+        private void ControlEvent_KeyPressed(object sender, ButtonPressedEventArgs e)
         {
 
-            if (Game1.activeClickableMenu is GameMenu && e.KeyPressed == Microsoft.Xna.Framework.Input.Keys.P && !pres_comp)
+            if (Game1.activeClickableMenu is GameMenu && e.Button == SButton.P && !pres_comp)
             {
                 //this.Monitor.Log($"{Game1.player.name} pressed P--.");
                 pres_comp = true;
@@ -626,7 +651,7 @@ namespace LevelExtender
 
                 IList<NPC> characters = Game1.currentLocation.characters;
                 characters.Add((NPC)m);
-
+                
                 total_m++;
             }
 
@@ -655,9 +680,10 @@ namespace LevelExtender
             return (0.010 + (Game1.player.CombatLevel * 0.0001));
 
         }
-        private void GameEvents_QuarterSecondTick(object sender, EventArgs e)
+        private void GameEvents_QuarterSecondTick(object sender, UpdateTickedEventArgs e)
         {
-            if (Context.IsWorldReady && Game1.player.FishingLevel > 10)
+            
+            if (Context.IsWorldReady && e.IsMultipleOf(8) && Game1.player.FishingLevel > 10)
             {
                 if (Game1.activeClickableMenu is BobberBar && !firstFade)
                 {
@@ -690,8 +716,17 @@ namespace LevelExtender
         }
         private void TimeEvent_AfterDayStarted(object sender, EventArgs e)
         {
-
-            no_mons = false;
+            if (!mpload && this.Helper.ModRegistry.IsLoaded("f1r3w477.Level_Extender"))
+            {
+                mpmod = this.Helper.ModRegistry.GetApi<MPModApi>("f1r3w477.Level_Extender");
+                mpload = true;
+                SetTimer(1000);
+            }
+            else if (mpload)
+            {
+                SetTimer(1000);
+            }
+                no_mons = false;
         }
 
         public void Rem_mons()
@@ -778,7 +813,7 @@ namespace LevelExtender
         private void SaveEvents_AfterLoad(object sender, EventArgs e)
         {
             //object[] temp = { Game1.player.FarmingLevel, Game1.player.FishingLevel, Game1.player.ForagingLevel, Game1.player.MiningLevel, Game1.player.CombatLevel };
-            var config_t = this.Helper.ReadJsonFile<ModData>($"data/{Constants.SaveFolderName}.json") ?? new ModData();
+            var config_t = this.Helper.Data.ReadJsonFile<ModData>($"data/{Constants.SaveFolderName}.json") ?? new ModData();
             addedXP[0] = config_t.FaXP;
             sLevs[0] = config_t.FaLV;
             addedXP[1] = config_t.FXP;
@@ -878,7 +913,7 @@ namespace LevelExtender
             config.WorldMonsters = wm;
             config.Xp_modifier = xp_mod;
 
-            this.Helper.WriteJsonFile<ModData>($"data/{Constants.SaveFolderName}.json", config);
+            this.Helper.Data.WriteJsonFile<ModData>($"data/{Constants.SaveFolderName}.json", config);
 
 
 
@@ -913,8 +948,8 @@ namespace LevelExtender
         private void AddFishingXP(int xp, int i)
         {
             int[] temp = { Game1.player.FarmingLevel, Game1.player.FishingLevel, Game1.player.ForagingLevel, Game1.player.MiningLevel, Game1.player.CombatLevel };
-            this.Monitor.Log($"Adding XP: {xp}");
-            addedXP[i] += xp;
+            this.Monitor.Log($"Adding XP: {xp * mpMult}");
+            addedXP[i] += (int)(xp * mpMult);
             if ((addedXP[i] >= Math.Round((1000 * temp[i] + (temp[i] * temp[i] * temp[i] * 0.33)) * xp_mod)) && sLevs[i] < max[i])
             {
                 addedXP[i] = 0;
