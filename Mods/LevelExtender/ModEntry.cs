@@ -74,10 +74,6 @@ namespace LevelExtender
         int[] origExp = { 0, 0, 0, 0, 0 };
         bool wm = false;
         bool pres_comp = false;
-        int[] oldLevs = { 0, 0, 0, 0, 0 };
-        int[] newLevs = { 0, 0, 0, 0, 0 };
-        bool[] olev = { false, false, false, false, false };
-        bool[] shLev = { true, true, true, true, true };
         string[] skill_names = { "farming", "fishing", "foraging", "mining", "combat" };
         double xp_mod = 1.0;
 
@@ -337,19 +333,17 @@ namespace LevelExtender
 
                 if (e.NewMenu == null && menu_names.Contains(e.OldMenu.GetType().FullName))
                 {
-                    SetTimer();
+                    Closing();
                 }
             }
         }
         public void Closing()
         {
-            for(int i = 0; i < SKILLS; i++)
+            for (int i = 0; i < SKILLS; i++)
             {
-                if (GameLevels[i] >= 10 && shLev[i])
-                {
-                    GameLevels[i] = origLevs[i];
-                }
-                else if (!shLev[i])
+                if (origLevs[i] == 0) continue;
+
+                if (GameLevels[i] == 0) //Have prestiged
                 {
                     if (origLevs[i] - 10 >= 10)
                         sLevs[i] = origLevs[i] - 10;
@@ -361,12 +355,15 @@ namespace LevelExtender
                     newXP[i] = 0;
                     old[i] = false;
                 }
+                else
+                {
+                    GameLevels[i] = origLevs[i];
+                }
             }
             
             origLevs = new int[] { 0, 0, 0, 0, 0 };
             origExp = new int[] { 0, 0, 0, 0, 0 };
             pres_comp = false;
-            shLev = new bool[] { true, true, true, true, true };
         }
         private int GetExp(int x)
         {
@@ -453,32 +450,6 @@ namespace LevelExtender
                 }
 
 
-            }
-            if (Context.IsWorldReady && pres_comp)
-            {
-
-                for (int i = 0; i < temp.Length; i++)
-                {
-                    if (temp[i] >= 10 && !olev[i])
-                    {
-                        oldLevs[i] = temp[i];
-                        olev[i] = true;
-
-                    }
-                    else if (olev[i])
-                    {
-                        newLevs[i] = temp[i];
-
-                        if (newLevs[i] - oldLevs[i] < 0)
-                        {
-                            olev[i] = false;
-                            if (newLevs[i] - oldLevs[i] == -10 && oldLevs[i] == 10)
-                            {
-                                shLev[i] = false;
-                            }
-                        }
-                    }
-                }
             }
             if (Context.IsWorldReady && !no_mons && wm && Game1.player.currentLocation.IsOutdoors && Game1.activeClickableMenu == null && rand.NextDouble() <= S_R())
             {
@@ -774,10 +745,6 @@ namespace LevelExtender
 
             wm = new bool();
             pres_comp = false;
-            oldLevs = new int[] { 0, 0, 0, 0, 0 };
-            newLevs = new int[] { 0, 0, 0, 0, 0 };
-            olev = new bool[] { false, false, false, false, false };
-            shLev = new bool[] { true, true, true, true, true };
             xp_mod = 1.0;
         }
         private void AddFishingXP(int xp, int i)
@@ -797,19 +764,6 @@ namespace LevelExtender
                 GameLevels[i] = sLevs[i];
                 this.Monitor.Log($"{Game1.player.Name} retained {i}(index) at {sLevs[i]}.");
             }
-        }
-        private void SetTimer()
-        {
-            // Create a timer with a two second interval.
-            aTimer = new System.Timers.Timer(1100);
-            // Hook up the Elapsed event for the timer. 
-            aTimer.Elapsed += OnTimedEvent;
-            aTimer.AutoReset = false;
-            aTimer.Enabled = true;
-        }
-        private void OnTimedEvent(object source, ElapsedEventArgs e)
-        {
-            this.Closing();
         }
 
         public int[] GetCurXP()
