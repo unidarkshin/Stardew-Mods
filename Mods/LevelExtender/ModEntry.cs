@@ -60,7 +60,6 @@ namespace LevelExtender
         private const int SKILLS = 5;
 
         public static Mod instance;
-        private static System.Timers.Timer aTimer;
         int[] oldXP = { 0, 0, 0, 0, 0 };
         int[] newXP = { 0, 0, 0, 0, 0 };
         bool[] old = { false, false, false, false, false };
@@ -71,7 +70,6 @@ namespace LevelExtender
         ModData config = new ModData();
         public static Random rand = new Random(Guid.NewGuid().GetHashCode());
         int[] origLevs = { 0, 0, 0, 0, 0 };
-        int[] origExp = { 0, 0, 0, 0, 0 };
         bool wm = false;
         bool pres_comp = false;
         string[] skill_names = { "farming", "fishing", "foraging", "mining", "combat" };
@@ -362,7 +360,6 @@ namespace LevelExtender
             }
             
             origLevs = new int[] { 0, 0, 0, 0, 0 };
-            origExp = new int[] { 0, 0, 0, 0, 0 };
             pres_comp = false;
         }
         private int GetExp(int x)
@@ -741,7 +738,6 @@ namespace LevelExtender
             config = new ModData();
 
             origLevs = new int[] { 0, 0, 0, 0, 0 };
-            origExp = new int[] { 0, 0, 0, 0, 0 };
 
             wm = new bool();
             pres_comp = false;
