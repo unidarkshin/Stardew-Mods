@@ -41,8 +41,9 @@ namespace Sprint
 
         public override void Entry(IModHelper helper)
         {
+            //this.Monitor.Log("sprint - 1", LogLevel.Info);
+
             rnd = new Random();
-            dSpeed = Game1.player.addedSpeed;   
 
             helper.Events.Input.ButtonPressed += InputEvents_ButtonPressed;
             helper.Events.Input.ButtonReleased += InputEvents_ButtonReleased;
@@ -58,6 +59,8 @@ namespace Sprint
             config = instance.Helper.Data.ReadJsonFile<ModConfig>($"Data/{Constants.SaveFolderName}.json") ?? new ModConfig();
             factor = config.SprintSpeedIncrease;
 
+            dSpeed = Game1.player.addedSpeed;
+
             if (!File.Exists($"Data/{Constants.SaveFolderName}.json"))
                 instance.Helper.Data.WriteJsonFile<ModConfig>($"Data/{Constants.SaveFolderName}.json", config);
         }
@@ -69,7 +72,12 @@ namespace Sprint
 
             if (sprinting && Game1.player.Stamina > 0.0f)
             {
+                float oldst = Game1.player.Stamina;
+
                 Game1.player.Stamina -= config.StaminaLossPerHalfSecond;
+
+                //Game1.chatBox.addMessage($"OS: {oldst} -> S: {Game1.player.Stamina}", Color.DeepPink);
+                //this.Monitor.Log("sprint - 2", LogLevel.Info);
 
                 if (Game1.player.addedSpeed == dSpeed)
                     Game1.player.addedSpeed = dSpeed + factor;
