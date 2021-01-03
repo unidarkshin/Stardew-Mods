@@ -115,7 +115,7 @@ namespace LevelExtender
             helper.ConsoleCommands.Add("wm_toggle", "Toggles monster spawning: wm_toggle", this.WmT);
             helper.ConsoleCommands.Add("xp_m", "Changes the xp modifier for levels 10 and after: xp_m <decimal 0.0 -> ANY> : 1.0 is default.", this.XpM);
             helper.ConsoleCommands.Add("spawn_modifier", "Forcefully changes mosnter spawn rate to specified decimal value: spawn_modifier <decimal(percent)> : -1.0 to not have any effect.", this.SM);
-            helper.ConsoleCommands.Add("xp_table", "Displays the xp table for every level.", this.XPT);
+            helper.ConsoleCommands.Add("xp_table", "Displays the xp table for your current levels.", this.XPT);
 
             this.Helper.Content.InvalidateCache("Data/Fish");
             //LEE.OnXPChanged += LEE_OnXPChanged;
@@ -149,10 +149,16 @@ namespace LevelExtender
 
         private void XPT(string arg1, string[] arg2)
         {
-            Monitor.Log("Level:  |  Experience:");
-            for (int i = 10; i < 100; i++)
-            {
-                Monitor.Log($"     {i} | {Math.Round((1000 * i + (i * i * i * 0.33)) * xp_mod)}");
+            
+            Monitor.Log("Skill:  | Level:  |  Current Experience:  | Experience Needed:", LogLevel.Info);
+            
+            string[] skills = { "Farming", "Fishing", "Foraging", "Mining", "Combat" };
+            int[] skillLevs = { Game1.player.farmingLevel.Value, Game1.player.fishingLevel.Value, Game1.player.foragingLevel.Value, Game1.player.miningLevel.Value, Game1.player.combatLevel.Value };
+            for (int i = 0; i < 5; i++)
+            {                
+                double xpn = Math.Round((1000 * skillLevs[i] + (skillLevs[i] * skillLevs[i] * skillLevs[i] * 0.33)) * xp_mod);
+                Monitor.Log($"{skills[i]} | {skillLevs[i]} | {addedXP[i]} | {xpn}", LogLevel.Info);
+                //Monitor.Log($"     {i} | {Math.Round((1000 * i + (i * i * i * 0.33)) * xp_mod)}");
             }
         }
 

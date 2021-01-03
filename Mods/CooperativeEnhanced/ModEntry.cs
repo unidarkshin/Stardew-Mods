@@ -40,9 +40,9 @@ namespace CooperativeEnhanced
         {
             rnd = new Random();
 
-            SaveEvents.AfterLoad += SaveEvents_AfterLoad;
-            GameEvents.OneSecondTick += GameEvents_OneSecondTick;
-            GraphicsEvents.OnPostRenderEvent += GraphicsEvents_OnPostRenderEvent;
+            helper.Events.GameLoop.SaveLoaded += SaveEvents_AfterLoad;
+            helper.Events.GameLoop.OneSecondUpdateTicked += GameEvents_OneSecondTick;
+            helper.Events.Display.Rendered += GraphicsEvents_OnPostRenderEvent;
             
         }
 
@@ -50,7 +50,7 @@ namespace CooperativeEnhanced
         {
             SpriteBatch b = Game1.spriteBatch;
 
-            if (nearPlayer())
+            if (NearPlayer())
             {
                 
                 Rectangle destinationRectangle = new Rectangle(Game1.viewport.MaxCorner.X - 151, 51, 150, 50);
@@ -71,9 +71,9 @@ namespace CooperativeEnhanced
                 do
                 {
                     int change = curPts.Current - expPts.Current;
-                    if (change > 0 && nearPlayer())
+                    if (change > 0 && NearPlayer())
                     {
-                        Game1.player.gainExperience(x, (int)(change * 0.5 * config.coopMult));
+                        Game1.player.gainExperience(x, (int)(change * config.coopMult));
                     }
 
                     x++;
@@ -83,7 +83,7 @@ namespace CooperativeEnhanced
             }
         }
 
-        private bool nearPlayer()
+        private bool NearPlayer()
         {
             foreach (Farmer f in Game1.getOnlineFarmers())
             {
@@ -112,6 +112,6 @@ namespace CooperativeEnhanced
 
     public class ModConfig
     {
-        public double coopMult { get; set; } = 1.0;
+        public double coopMult { get; set; } = 1.25;
     }
 }
