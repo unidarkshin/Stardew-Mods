@@ -12,6 +12,9 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using TehPers.FishingOverhaul.Api.Enums;
 using System.IO;
+using Harmony;
+using SObject = StardewValley.Object;
+using SpaceShared.APIs;
 
 namespace ExtremeFishingOverhaul
 {
@@ -43,12 +46,49 @@ namespace ExtremeFishingOverhaul
         int maxFL;
         int minFL;
 
+        private new static IMonitor Monitor;
+
+        internal static JsonAssetsAPI ja;
+
+        List<string> ofNames = new List<string>();
+
         /// <summary>Used to register fish with Teh's Fishing Overhaul (if it's loaded)</summary>
         private readonly TehFishingHelper tehHelper;
 
         public ModEntry()
         {
+            instance = this;
+
+
             tehHelper = new TehFishingHelper(this);
+        }
+
+        public static void Initialize(IMonitor monitor)
+        {
+            Monitor = monitor;
+        }
+
+        public static bool Dpffw_Prefix(BinaryReader argReader)
+        {
+            //throw new NotImplementedException();
+            
+
+            Monitor.Log($"initial patch location");
+
+            try
+            {
+
+                Monitor.Log($"Fishing in fishing overhaul!");
+
+                return true;
+
+            }
+
+            catch (Exception ex)
+            {
+                Monitor.Log($"Failed in {nameof(Dpffw_Prefix)}:\n{ex}", LogLevel.Error);
+                return true; // run original logic
+            }
         }
 
         /*********
@@ -60,7 +100,7 @@ namespace ExtremeFishingOverhaul
 
         public bool CanEdit<T>(IAssetInfo asset)
         {
-            return asset.AssetNameEquals(@"Data\Fish") || asset.AssetNameEquals(@"Data\ObjectInformation") || asset.AssetNameEquals(@"Data\Locations") || asset.AssetNameEquals(@"Maps\springobjects");
+            return asset.AssetNameEquals(@"Data\Fish") || asset.AssetNameEquals(@"Data\ObjectInformation") || asset.AssetNameEquals(@"Data\Locations"); //|| asset.AssetNameEquals(@"Maps\springobjects");
         }
 
         /// <summary>Edit a matched asset.</summary>
@@ -112,6 +152,7 @@ namespace ExtremeFishingOverhaul
             }
             else if (asset.AssetNameEquals(@"Data\ObjectInformation"))
             {
+
 
                 IDictionary<int, string> data = asset.AsDictionary<int, string>().Data;
 
@@ -188,6 +229,8 @@ namespace ExtremeFishingOverhaul
             }
             else if (asset.AssetNameEquals(@"Data\Locations"))
             {
+
+
                 IDictionary<string, string> data = asset.AsDictionary<string, string>().Data;
                 //ICollection<string> keys = data.Keys;
 
@@ -211,7 +254,7 @@ namespace ExtremeFishingOverhaul
                         if (rnd.NextDouble() < 0.33)
                         {
                             fields[5] += " " + fIDS[i] + " -1";
-                            //this.Monitor.Log($"|||||-----> {fIDS[i]}");
+                            //Monitor.Log($"|||||-----> {fIDS[i]}");
 
                             this.tehHelper.AddLocation(fIDS[i], id.ToString());
                             this.tehHelper.AddedData[fIDS[i]].Seasons.Add("summer");
@@ -242,7 +285,7 @@ namespace ExtremeFishingOverhaul
                 //});
 
             }
-            else if (asset.AssetNameEquals(@"Maps\springobjects"))
+            /*else if (asset.AssetNameEquals(@"Maps\springobjects"))
             {
                 var texture = this.Helper.Content.Load<Texture2D>(@"assets\springobjects.xnb", ContentSource.ModFolder);
 
@@ -251,7 +294,7 @@ namespace ExtremeFishingOverhaul
                 //asset
                     //.AsImage()
                     //.Data.
-            }
+            }*/
         }
 
         private void GenerateFish()
@@ -259,7 +302,7 @@ namespace ExtremeFishingOverhaul
             //this.Monitor.Log("2nd");
             bool rare = false;
             bool rare2 = false;
-            MaxFish = 500;
+            //MaxFish = 500;
 
 
 
@@ -301,7 +344,8 @@ namespace ExtremeFishingOverhaul
                     //Monitor.Log("Celestial2 F Created.");
                 }
 
-                int id = 1999 - i;
+                //int id = 1999 - i;
+                int id = fIDS[i];
                 int levR = rnd.Next(minFL, maxFL);
                 int diff;
                 string ft;
@@ -324,7 +368,7 @@ namespace ExtremeFishingOverhaul
 
                 diff = (int)(diff * (((levR + 100.0) / 250.0) + 0.30));
 
-                fIDS.Add(id);
+                //fIDS.Add(id);
                 diffs.Add(diff);
                 type.Add(ft);
                 levRS.Add(levR);
@@ -370,6 +414,19 @@ namespace ExtremeFishingOverhaul
 
         public override void Entry(IModHelper helper)
         {
+            
+
+            Initialize(instance.Monitor);
+
+            helper.Events.GameLoop.GameLaunched += OnGameLaunched;
+            helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
+
+            /*  var harmony = HarmonyInstance.Create(this.ModManifest.UniqueID);
+              harmony.Patch(
+                      original: AccessTools.Method(typeof(StardewValley.Tools.FishingRod), "doPullFishFromWater"), //nameof(this.Helper.Reflection.GetMethod(typeof(StardewValley.Tools.FishingRod), "doPullFishFromWater"))),
+                      prefix: new HarmonyMethod(typeof(ModEntry), nameof(this.Dpffw_Prefix))
+                  );
+              */
 
             ModConfig config = helper.ReadConfig<ModConfig>();
             rnd = new Random(config.seed);
@@ -397,15 +454,80 @@ namespace ExtremeFishingOverhaul
             legend = new List<bool>(new bool[MaxFish]);
             legend2 = new List<bool>(new bool[MaxFish]);
 
-            GenerateFish();
+            var tilesheet = helper.Content.Load<Texture2D>("assets/fish.png");
+
+
+            //RegisterCritter(name, tilesheet, new Rectangle(index % 4 * 16, index / 4 * 16, 16, 16)
+
+            Texture2D tex = tilesheet;
+            Rectangle[] texRects = new Rectangle[MaxFish];
+            int fCount = 0;
+
+            
+
+            for (int r = 0; r < (tilesheet.Height / 16); r++)
+            {
+                for (int c = 0; c < (tilesheet.Width/16); c++)
+                {
+                    texRects[fCount] = new Rectangle(c * 16, r * 16, 16, 16);
+
+                    fCount=fCount+1;
+
+                    if (fCount == MaxFish)
+                        goto loopEnd;
+                }
+            }
+
+            loopEnd:
+
+            for (int i = 0; i < MaxFish; i++)
+            {
+
+                //Monitor.Log($"FO index: {i}, X: {texRects[i].X}, Y: {texRects[i].Y}");
+
+                var texData = new Color[16 * 16];
+                tex.GetData(0, texRects[i], texData, 0, texData.Length);
+                var jaTex = new Texture2D(Game1.graphics.GraphicsDevice, 16, 16);
+                jaTex.SetData(texData);
+
+                ofNames.Add($"EXO Fish: {i}");
+
+                JsonAssets.Mod.instance.RegisterObject(ModManifest, new JsonAssets.Data.ObjectData()
+                {
+                    Name = ofNames[i],
+                    texture = jaTex,
+                });
+
+            }
+
+            //GenerateFish();
 
             // Experimental compatibility with Teh's Fishing Overhaul (until Nuget package is updated)
             helper.Events.GameLoop.SaveLoaded += (sender, e) => this.tehHelper.TryRegisterFish();
         }
 
+        private void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
+        {
+            for (int i = 0; i < MaxFish; i++)
+            {
+                fIDS.Add(ja.GetObjectId(ofNames[i]));
+
+                //Monitor.Log($"Fish ID: {fIDS[i]}");
+            }
+            
+
+            GenerateFish();
 
 
+            this.Helper.Content.InvalidateCache("Data/Fish");
+            this.Helper.Content.InvalidateCache("Data/Locations");
+            this.Helper.Content.InvalidateCache("Data/ObjectInformation");
 
+        }
 
+        private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
+        {
+            ja = Helper.ModRegistry.GetApi<JsonAssetsAPI>("spacechase0.JsonAssets");
+        }
     }
 }

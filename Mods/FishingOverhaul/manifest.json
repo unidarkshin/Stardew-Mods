@@ -5,5 +5,16 @@
     "Description": "Overhauls fishing by a longshot by randomly generating any number of fish.",
     "UniqueID": "DevinLematty.ExtremeFishingOverhaul",
     "EntryDll": "FishingOverhaul.dll",
-    "MinimumApiVersion": "2.0"
+    "MinimumApiVersion": "2.0",
+	"Dependencies": [
+   {
+      "UniqueID": "spacechase0.JsonAssets"
+   },
+    {
+      "UniqueID": "spacechase0.SpaceCore"
+    },
+    {
+      "UniqueID": "Cherry.ExpandedPreconditionsUtility"
+    },
+]
 }
