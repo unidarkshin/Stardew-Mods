@@ -237,12 +237,35 @@ namespace ExtremeFishingOverhaul
                 foreach (string id in data.Keys.ToArray())
                 {
 
+                    
+
                     string[] fields = data[id].Split('/');
 
+                    string[] seasonsS = { "", "", "", "", "spring", "summer", "fall", "winter" };
 
                     for (int i = 0; i < fIDS.Count; i++)
                     {
+                        var seasons = new List<int>
+                        {
+                            4, //spring
+                            5, //summer
+                            6, //fall
+                            7 //winter
+                        };
 
+                        while ((rnd.NextDouble() < 0.33) && (seasons.Count > 0))
+                        {
+                            int season = seasons[rnd.Next(seasons.Count)];
+                            fields[season] += " " + fIDS[i] + " -1";
+                            //this.Monitor.Log($"|||||-----> {fIDS[i]}");
+
+                            this.tehHelper.AddLocation(fIDS[i], id.ToString());
+                            this.tehHelper.AddedData[fIDS[i]].Seasons.Add(seasonsS[season]);
+
+                            seasons.Remove(season);
+                        }
+
+                        /*
                         if (rnd.NextDouble() < 0.33)
                         {
                             fields[4] += " " + fIDS[i] + " -1";
@@ -275,7 +298,7 @@ namespace ExtremeFishingOverhaul
                             this.tehHelper.AddLocation(fIDS[i], id.ToString());
                             this.tehHelper.AddedData[fIDS[i]].Seasons.Add("winter");
                         }
-
+                        */
 
                     }
 

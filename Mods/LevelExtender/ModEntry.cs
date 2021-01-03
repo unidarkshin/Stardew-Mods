@@ -114,9 +114,10 @@ namespace LevelExtender
             helper.ConsoleCommands.Add("lev", "Sets the player's level: lev <type> <number>", this.SetLev);
             helper.ConsoleCommands.Add("wm_toggle", "Toggles monster spawning: wm_toggle", this.WmT);
             helper.ConsoleCommands.Add("xp_m", "Changes the xp modifier for levels 10 and after: xp_m <decimal 0.0 -> ANY> : 1.0 is default.", this.XpM);
-            helper.ConsoleCommands.Add("spawn_modifier", "Forcefully changes mosnter spawn rate to specified decimal value: spawn_modifier <decimal(percent)> : -1.0 to not have any effect.", this.SM);
+            helper.ConsoleCommands.Add("spawn_modifier", "Forcefully changes monster spawn rate to specified decimal value: spawn_modifier <decimal(percent)> : -1.0 to not have any effect.", this.SM);
             helper.ConsoleCommands.Add("xp_table", "Displays the xp table for your current levels.", this.XPT);
-
+            //helper.ConsoleCommands.Add("LE_cmds", "Displays the xp table for your current levels.", this.XPT);
+            
             this.Helper.Content.InvalidateCache("Data/Fish");
             //LEE.OnXPChanged += LEE_OnXPChanged;
             
@@ -718,8 +719,8 @@ namespace LevelExtender
             {
                 if (Game1.activeClickableMenu is BobberBar && !firstFade)
                 {
-                    this.Monitor.Log($"Fishing Level:  {Game1.player.fishingLevel.Value}");
-                    this.Monitor.Log($"Modified Fishing Level:  {Game1.player.FishingLevel}");
+                    //this.Monitor.Log($"Fishing Level:  {Game1.player.fishingLevel.Value}");
+                    //this.Monitor.Log($"Modified Fishing Level:  {Game1.player.FishingLevel}");
                     //this.Monitor.Log($"Buffs: {this.Helper.Reflection.GetField<string>(Game1.buffsDisplay, "buffs").GetValue()}");
                     int bobberBonus = 0;
                     Tool tool = Game1.player.CurrentTool;
@@ -738,7 +739,7 @@ namespace LevelExtender
                     //Item check = this.Helper.Reflection.
                     int bobberBarSize = 176 + bobberBonus;
                     firstFade = true;
-                    this.Monitor.Log($"{this.Helper.Reflection.GetField<int>(Game1.activeClickableMenu, "bobberBarHeight").GetValue()} -SIZE.");
+                    //this.Monitor.Log($"{this.Helper.Reflection.GetField<int>(Game1.activeClickableMenu, "bobberBarHeight").GetValue()} -SIZE.");
                     this.Helper.Reflection.GetField<int>(Game1.activeClickableMenu, "bobberBarHeight").SetValue(bobberBarSize);
                     this.Helper.Reflection.GetField<float>(Game1.activeClickableMenu, "bobberBarPos").SetValue((float)(568 - bobberBarSize));
 
@@ -1048,7 +1049,7 @@ namespace LevelExtender
                 {
                     Game1.player.combatLevel.Value = sLevs[i];
                 }
-                this.Monitor.Log($"{Game1.player.Name} retained {i}(index) at {sLevs[i]}.");
+                //this.Monitor.Log($"{Game1.player.Name} retained {i}(index) at {sLevs[i]}.");
             }
         }
         private void SetTimer()
