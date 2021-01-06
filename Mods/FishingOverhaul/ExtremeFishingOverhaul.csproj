@@ -36,6 +36,7 @@
   <ItemGroup>
     <Reference Include="JsonAssets">
       <HintPath>..\..\..\..\..\Desktop\JsonAssets\JsonAssets.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.Build" />
     <Reference Include="Microsoft.Build.Framework" />

@@ -26,7 +26,21 @@ namespace ExtremeFishingOverhaul
         public static Random rnd;
 
         String[] fType = { "mixed", "dart", "floater", "sinker" };
-        String[] names = { "Jaguar", "Loveless", "Horny", "Chinese", "Japanese", "Korean", "Frightened", "American", "Sweedish", "Iranian", "Polish", "Bloodied", "Decaying", "Dead", "Dying", "Eager", "Kawaii", "Russian", "German", "Noodle", "Floppy", "Disk", "Bubble", "Fruit", "Stinky", "Taco", "Knife", "Hawk", "Night", "Sky", "Lizard", "Clown", "Floob", "Peruvian", "Forgotten", "Cranky", "Loopy", "Irresponsible", "Fish", "Dog", "Cat", "Mother", "Father", "Transvestite", "Llama", "Giraffe", "Expert", "Happy", "Sad", "Real", "Fake", "Cheating", "Freaky", "Legendary", "Common", "Rare", "Ultimate", "Original", "Freaky", "Slimy", "Rude", "Discriminatory", "Anorexic", "Enslaved", "Ghost", "Bird", "Squish", "Helium", "Metal", "Wood", "Stone", "Borking", "Skinny", "Janky", "Swaggy", "Oblivious", "Boring", "Raping", "Racist", "Fat", "Astral", "Elysian", "Celestial", "Angelic", "Immortal", "Obese", "Janky", "Strange", "Eerie", "Fishy", "Star", "Stringy", "Politically Correct", "Cougar", "BBW", "Creamy", "Moist", "Rookie", "Undead", "Listless", "Horny", "Bland", "Seasoned", "Careful", "Belligerent", "Uncanny", "Light", "Flakey", "Flaming", "Copious", "Arrogant", "Scaley", "Hallowed", "Sacred", "Small", "Excited", "Smothered", "Lava", "Molten", "Drake", "Sandy", "Ice", "Chocolate", "Slippery", "Shadey", "Elemental", "Expermental", "Air", "Fire", "Nature", "Earth", "Tree", "Mutant", "Defecating", "Physics Defying", "Passionate", "Cute", "Sexual", "Lonely", "Anxious", "Terrible", "Impressive", "Mentally", "Dangerous", "Intelligent", "Lucky", "Dramatic", "Embarrassed", "Conscious", "Wonderful", "Wonder", "Unique", "Freezing", "Beautiful", "Enchanted", "Ghostly" };
+
+        String[] names = { "Jaguar", "Loveless", "Horny", "Chinese", "Japanese", "Korean", "Frightened", "American", "Sweedish", "Iranian", "Polish",
+            "Bloodied", "Decaying", "Dead", "Dying", "Eager", "Kawaii", "Russian", "German", "Noodle", "Floppy", "Disk", "Bubble", "Fruit", "Stinky",
+            "Taco", "Knife", "Hawk", "Night", "Sky", "Lizard", "Clown", "Floob", "Peruvian", "Forgotten", "Cranky", "Loopy", "Irresponsible", "Fish",
+            "Dog", "Cat", "Mother", "Father", "Transvestite", "Llama", "Giraffe", "Expert", "Happy", "Sad", "Real", "Fake", "Cheating", "Freaky",
+            "Legendary", "Common", "Rare", "Ultimate", "Original", "Freaky", "Slimy", "Rude", "Discriminatory", "Anorexic", "Enslaved", "Ghost", "Bird",
+            "Squish", "Helium", "Metal", "Wood", "Stone", "Borking", "Skinny", "Janky", "Swaggy", "Oblivious", "Boring", "Raping", "Racist", "Fat",
+            "Astral", "Elysian", "Celestial", "Angelic", "Immortal", "Obese", "Janky", "Strange", "Eerie", "Fishy", "Star", "Stringy",
+            "Politically Correct", "Cougar", "BBW", "Creamy", "Moist", "Rookie", "Undead", "Listless", "Horny", "Bland", "Seasoned", "Careful",
+            "Belligerent", "Uncanny", "Light", "Flakey", "Flaming", "Copious", "Arrogant", "Scaley", "Hallowed", "Sacred", "Small", "Excited",
+            "Smothered", "Lava", "Molten", "Drake", "Sandy", "Ice", "Chocolate", "Slippery", "Shadey", "Elemental", "Expermental", "Air", "Fire",
+            "Nature", "Earth", "Tree", "Mutant", "Defecating", "Physics Defying", "Passionate", "Cute", "Sexual", "Lonely", "Anxious", "Terrible",
+            "Impressive", "Mentally", "Dangerous", "Intelligent", "Lucky", "Dramatic", "Embarrassed", "Conscious", "Wonderful", "Wonder", "Unique",
+            "Freezing", "Beautiful", "Enchanted", "Ghostly" };
+
         String[] n_post = { "Fish", "Ray", "Angelfish", "Moonfish", "Eel", "Sucker", "Dragonfish", "Minnou", "Angler", "Prowfish" };
 
 

@@ -1,7 +1,7 @@
 {
     "Name": "Level Extender",
     "Author": "Devin Lematty",
-    "Version": "3.5",
+    "Version": "4.0",
     "Description": "Extends profession levels to 100.",
     "UniqueID": "Devin_Lematty.Level_Extender",
     "EntryDll": "LevelExtender.dll",

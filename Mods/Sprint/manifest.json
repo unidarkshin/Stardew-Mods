@@ -1,9 +1,10 @@
 {
     "Name": "Sprint",
     "Author": "Devin Lematty",
-    "Version": "3.0",
+    "Version": "4.0",
     "Description": "Allows your character to sprint!",
     "UniqueID": "DevinLematty.Sprint",
     "EntryDll": "Sprint.dll",
-    "MinimumApiVersion": "2.10.0"
+    "MinimumApiVersion": "3.0",
+	"UpdateKeys": [ "Nexus:7492" ],
 }
