@@ -813,7 +813,7 @@ namespace LevelExtender
             }
 
 
-            if (e.IsMultipleOf(8) && Game1.player.FishingLevel > 10)
+            if (e.IsMultipleOf(8)) // && Game1.player.FishingLevel > 10)
             {
                 if (Game1.activeClickableMenu is BobberBar && !firstFade)
                 {
@@ -852,7 +852,13 @@ namespace LevelExtender
                     else if (Game1.player.FishingLevel > 24)
                         bobberBonus += 2;
 
-                    int bobberBarSize = 104 + bobberBonus + (Game1.player.FishingLevel-10);
+                    int bobberBarSize;
+
+                    if (Game1.player.FishingLevel < 13)
+                        bobberBarSize = 35 + bobberBonus + (int)(Game1.player.FishingLevel * 11.25);
+                    else
+                        bobberBarSize = 170 + bobberBonus + (int)(Game1.player.FishingLevel * (0.5+(rand.NextDouble()/2.0)));
+
                     firstFade = true;
                     //Monitor.Log($"{this.Helper.Reflection.GetField<int>(Game1.activeClickableMenu, "bobberBarHeight").GetValue()} -SIZE.");
                     this.Helper.Reflection.GetField<int>(Game1.activeClickableMenu, "bobberBarHeight").SetValue(bobberBarSize);

@@ -5,6 +5,6 @@
     "Description": "Allows your character to sprint!",
     "UniqueID": "DevinLematty.Sprint",
     "EntryDll": "Sprint.dll",
-    "MinimumApiVersion": "3.0",
+    "MinimumApiVersion": "3.7",
 	"UpdateKeys": [ "Nexus:7492" ],
 }

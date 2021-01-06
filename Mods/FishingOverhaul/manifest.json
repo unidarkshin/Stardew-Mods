@@ -5,7 +5,7 @@
     "Description": "Overhauls fishing by a longshot by randomly generating any number of fish.",
     "UniqueID": "DevinLematty.ExtremeFishingOverhaul",
     "EntryDll": "FishingOverhaul.dll",
-    "MinimumApiVersion": "4.0",
+    "MinimumApiVersion": "3.7",
 	"UpdateKeys": [ "Nexus:7490" ],
 	"Dependencies": [
    {

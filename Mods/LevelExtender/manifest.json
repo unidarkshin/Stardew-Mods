@@ -1,10 +1,10 @@
 {
     "Name": "Level Extender",
     "Author": "Devin Lematty",
-    "Version": "4.0",
+    "Version": "4.1",
     "Description": "Extends profession levels to 100.",
     "UniqueID": "Devin_Lematty.Level_Extender",
     "EntryDll": "LevelExtender.dll",
-    "MinimumApiVersion": "3.5",
+    "MinimumApiVersion": "3.7",
     "UpdateKeys": [ "Nexus:1471" ]
 }
