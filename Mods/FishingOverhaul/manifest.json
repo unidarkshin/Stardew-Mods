@@ -1,7 +1,7 @@
 {
     "Name": "Extreme Fishing Overhaul",
     "Author": "Devin Lematty",
-    "Version": "4.0",
+    "Version": "4.1",
     "Description": "Overhauls fishing by a longshot by randomly generating any number of fish.",
     "UniqueID": "DevinLematty.ExtremeFishingOverhaul",
     "EntryDll": "FishingOverhaul.dll",
