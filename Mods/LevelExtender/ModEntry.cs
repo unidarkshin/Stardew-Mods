@@ -854,10 +854,14 @@ namespace LevelExtender
 
                     int bobberBarSize;
 
-                    if (Game1.player.FishingLevel < 13)
-                        bobberBarSize = 35 + bobberBonus + (int)(Game1.player.FishingLevel * 11.25);
+                    /*if (Game1.player.FishingLevel < 13)
+                        bobberBarSize = 75 + bobberBonus + (int)(Game1.player.FishingLevel * 7.9);
                     else
-                        bobberBarSize = 170 + bobberBonus + (int)(Game1.player.FishingLevel * (0.5+(rand.NextDouble()/2.0)));
+                        bobberBarSize = 165 + bobberBonus + (int)(Game1.player.FishingLevel * (0.5+(rand.NextDouble()/2.0)));
+
+                    */
+
+                    bobberBarSize = 80 + bobberBonus + (int)(Game1.player.FishingLevel * 1.6);
 
                     firstFade = true;
                     //Monitor.Log($"{this.Helper.Reflection.GetField<int>(Game1.activeClickableMenu, "bobberBarHeight").GetValue()} -SIZE.");
