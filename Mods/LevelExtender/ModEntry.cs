@@ -124,19 +124,25 @@ namespace LevelExtender
             helper.Events.Input.ButtonPressed += this.ControlEvent_KeyPressed;
             helper.Events.GameLoop.DayStarted += this.TimeEvent_AfterDayStarted;
             helper.Events.Input.ButtonReleased += this.ControlEvent_KeyReleased;
-
-            helper.ConsoleCommands.Add("xp", "Tells the players current XP above or at level 10.", this.XPT);
+            
+            helper.ConsoleCommands.Add("xp", "Displays the xp table for your current levels.", this.XPT);
             helper.ConsoleCommands.Add("lev", "Sets the player's level: lev <type> <number>", this.SetLev);
             helper.ConsoleCommands.Add("wm_toggle", "Toggles monster spawning: wm_toggle", this.WmT);
             helper.ConsoleCommands.Add("xp_m", "Changes the xp modifier for levels 10 and after: xp_m <decimal 0.0 -> ANY> : 1.0 is default.", this.XpM);
             helper.ConsoleCommands.Add("spawn_modifier", "Forcefully changes monster spawn rate to specified decimal value: spawn_modifier <decimal(percent)> : -1.0 to not have any effect.", this.SM);
-            helper.ConsoleCommands.Add("xp_table", "Displays the xp table for your current levels.", this.TellXP);
+            helper.ConsoleCommands.Add("xp_table", "Tells the players current XP above or at level 10.", this.TellXP);
+            helper.ConsoleCommands.Add("set_xp", "Sets your current XP for a given skill: set_xp <skill> <XP: int 0 -> ANY>", this.SetXP);
             //helper.ConsoleCommands.Add("LE_cmds", "Displays the xp table for your current levels.", this.XPT);
-            
+
             this.Helper.Content.InvalidateCache("Data/Fish");
             //LEE.OnXPChanged += LEE_OnXPChanged;
             
             
+        }
+
+        private void SetXP(string arg1, string[] arg2)
+        {
+            throw new NotImplementedException();
         }
 
         public static bool WCDF(GameLocation location, int x, int y, int power, Farmer who)
@@ -443,6 +449,9 @@ namespace LevelExtender
         }
         private void Display_MenuChanged(object sender, MenuChangedEventArgs e)
         {
+            if (!Context.IsWorldReady || e.OldMenu == null)
+                return;
+
             if (pres_comp)
             {
                 if (e.OldMenu.GetType().FullName == "SkillPrestige.Menus.PrestigeMenu")
