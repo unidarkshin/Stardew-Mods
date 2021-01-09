@@ -42,6 +42,8 @@ namespace ExtremeFishingOverhaul {
         }
 
         public void AddFish(int id, FishTraits traits, FishData dataTemplate) {
+            if (AddedTraits.ContainsKey(id))
+                return;
             this.AddedTraits.Add(id, traits);
             this.AddedData.Add(id, dataTemplate);
 

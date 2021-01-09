@@ -42,17 +42,24 @@ namespace InfiniteInventory
         public override void Entry(IModHelper helper)
         {
             rnd = new Random();
-            back = Helper.Content.Load<Texture2D>("backpack.png");
+            back = Helper.Content.Load<Texture2D>("assets/backpack.png");
 
-            InputEvents.ButtonPressed += InputEvents_ButtonPressed;
-            InputEvents.ButtonReleased += InputEvents_ButtonReleased;
-            TimeEvents.AfterDayStarted += TimeEvents_AfterDayStarted;
-            GameEvents.EighthUpdateTick += GameEvents_EighthSecondTick;
-            SaveEvents.BeforeSave += SaveEvents_BeforeSave;
-            SaveEvents.AfterLoad += SaveEvents_AfterLoad;
-            MenuEvents.MenuChanged += MenuEvents_MenuChanged;
-            MenuEvents.MenuClosed += MenuEvents_MenuClosed;
-            GraphicsEvents.OnPostRenderEvent += GraphicsEvents_OnPostRenderEvent;
+            var texData = new Color[16 * 16];
+            back.GetData(0, new Rectangle(back.Width/2, back.Height/2, 16, 16), texData, 0, texData.Length);
+            var jaTex = new Texture2D(Game1.graphics.GraphicsDevice, 16, 16);
+            jaTex.SetData(texData);
+
+            back = jaTex;
+
+            helper.Events.Input.ButtonPressed += ButtonPressed;
+            helper.Events.Input.ButtonReleased += ButtonReleased;
+            helper.Events.GameLoop.DayStarted += AfterDayStarted;
+            helper.Events.GameLoop.UpdateTicked += EighthSecondTick;
+            helper.Events.GameLoop.Saving += BeforeSave;
+            helper.Events.GameLoop.SaveLoaded += AfterLoad;
+            helper.Events.Display.MenuChanged += MenuChanged;
+            //helper.Events.Display..MenuClosed += MenuClosed;
+            helper.Events.Display.RenderedActiveMenu += OnPostRenderEvent;
 
             helper.ConsoleCommands.Add("buy_tab", "Buys the next inventory tab.", this.buy_tab);
             helper.ConsoleCommands.Add("set_tab", "(CHEAT) Sets the number of tabs in you inventory. Syntax: set_tab <Integer>", this.set_tab);
@@ -61,11 +68,11 @@ namespace InfiniteInventory
             helper.ConsoleCommands.Add("set_cost", "Sets cost multiplier for tabs. Syntax: set_cost <Integer>. Default: 30000.", this.set_cost);
         }
 
-        private void InputEvents_ButtonReleased(object sender, EventArgsInput e)
+        private void ButtonReleased(object sender, ButtonReleasedEventArgs e)
         {
             if (!Context.IsWorldReady)
                 return;
-
+            
             if (e.Button == cfg.tabChangeBack)
             {
                 backward[0] = false;
@@ -78,7 +85,7 @@ namespace InfiniteInventory
             }
         }
 
-        private void MenuEvents_MenuClosed(object sender, EventArgsClickableMenuClosed e)
+        /*private void MenuClosed(object sender, EventArgsClickableMenuClosed e)
         {
             if (!Context.IsWorldReady)
                 return;
@@ -94,15 +101,15 @@ namespace InfiniteInventory
                 {
 
                 }
-
-                GameEvents.UpdateTick -= selectedResponse;
+                Helper.Events.GameLoop.UpdateTicked += selectedResponse;
+                //GameEvents.UpdateTick -= selectedResponse;
                 resp = -1;
             }
-        }
+        }*/
 
         Vector2 tabLoc = new Vector2(-1, -1);
 
-        private void GraphicsEvents_OnPostRenderEvent(object sender, EventArgs e)
+        private void OnPostRenderEvent(object sender, EventArgs e)
         {
             if (Context.IsWorldReady && (Game1.activeClickableMenu is GameMenu || Game1.activeClickableMenu is ItemGrabMenu) && Game1.player.MaxItems >= 36)
             {
@@ -225,19 +232,42 @@ namespace InfiniteInventory
             }
         }
 
-        private void MenuEvents_MenuChanged(object sender, EventArgsClickableMenuChanged e)
+        private void MenuChanged(object sender, MenuChangedEventArgs e)
         {
-            if (e.NewMenu == null)
+            if (!Context.IsWorldReady)
                 return;
-
-            if (e.NewMenu is DialogueBox)
+            
+            if (e.NewMenu != null && e.NewMenu is DialogueBox && (Game1.currentLocation.lastQuestionKey == "dl_infinv"))
             {
-                GameEvents.UpdateTick += selectedResponse;
+                
+                    Helper.Events.GameLoop.UpdateTicked += selectedResponse;
+                //GameEvents.UpdateTick += selectedResponse;
+            }
+
+            if (e.OldMenu != null && e.OldMenu is DialogueBox db && (Game1.currentLocation.lastQuestionKey == "dl_infinv"))
+            {
+                if (resp == 0)
+                {
+                    string[] str = { "" };
+                    buy_tab("buy_tab", str);
+
+
+                }
+                else
+                {
+                    
+                }
+
+                Helper.Events.GameLoop.UpdateTicked -= selectedResponse;
+                //GameEvents.UpdateTick -= selectedResponse;
+                resp = -1;
+
             }
         }
 
         private void selectedResponse(object sender, EventArgs e)
         {
+            Monitor.Log("you are in selected resp");
             if (Game1.activeClickableMenu is DialogueBox db)
             {
                 int sel = Helper.Reflection.GetField<int>(db, "selectedResponse").GetValue();
@@ -246,14 +276,14 @@ namespace InfiniteInventory
             }
         }
 
-        private void SaveEvents_AfterLoad(object sender, EventArgs e)
+        private void AfterLoad(object sender, SaveLoadedEventArgs e)
         {
             iv = new InfInv(instance);
 
             cfg = iv.config;
         }
 
-        private void SaveEvents_BeforeSave(object sender, EventArgs e)
+        private void BeforeSave(object sender, SavingEventArgs e)
         {
 
             //
@@ -268,9 +298,11 @@ namespace InfiniteInventory
 
         }
 
-        private void GameEvents_EighthSecondTick(object sender, EventArgs e)
+        private void EighthSecondTick(object sender, UpdateTickedEventArgs e)
         {
             if (!Context.IsWorldReady)
+                return;
+            if (!e.IsMultipleOf(8))
                 return;
 
             if (backward[0] == true && backward[1] == true)
@@ -283,12 +315,12 @@ namespace InfiniteInventory
             }
         }
 
-        private void TimeEvents_AfterDayStarted(object sender, EventArgs e)
+        private void AfterDayStarted(object sender, EventArgs e)
         {
 
         }
 
-        private void InputEvents_ButtonPressed(object sender, EventArgsInput e)
+        private void ButtonPressed(object sender, ButtonPressedEventArgs e)
         {
             if (Context.IsWorldReady && (Game1.activeClickableMenu is GameMenu || Game1.activeClickableMenu is ItemGrabMenu) && Game1.player.MaxItems >= 36)
             {

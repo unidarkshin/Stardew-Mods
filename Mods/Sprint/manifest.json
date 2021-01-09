@@ -1,7 +1,7 @@
 {
     "Name": "Sprint",
     "Author": "Devin Lematty",
-    "Version": "4.0",
+    "Version": "1.5.1",
     "Description": "Allows your character to sprint!",
     "UniqueID": "DevinLematty.Sprint",
     "EntryDll": "Sprint.dll",
