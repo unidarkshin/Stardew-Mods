@@ -35,7 +35,7 @@ namespace LevelExtender
             return ME.GetReqXP();
         }
 
-        public event EventHandler OnXPChanged
+        public event EventHandler<EXPEventArgs> OnXPChanged
         {
             add => ME.LEE.OnXPChanged += value;
             remove => ME.LEE.OnXPChanged -= value;

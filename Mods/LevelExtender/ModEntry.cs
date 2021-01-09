@@ -62,6 +62,8 @@ namespace LevelExtender
 
         private Timer aTimer2 = new Timer();
 
+        int[] dxp = { 0, 0, 0, 0, 0 };
+
         public ModEntry()
         {
             instance = this;
@@ -124,6 +126,8 @@ namespace LevelExtender
             helper.Events.Input.ButtonPressed += this.ControlEvent_KeyPressed;
             helper.Events.GameLoop.DayStarted += this.TimeEvent_AfterDayStarted;
             helper.Events.Input.ButtonReleased += this.ControlEvent_KeyReleased;
+
+            //LEE.OnXPChanged += LEE;
             
             helper.ConsoleCommands.Add("xp", "Displays the xp table for your current levels.", this.XPT);
             helper.ConsoleCommands.Add("lev", "Sets the player's level: lev <type> <number>", this.SetLev);
@@ -135,14 +139,14 @@ namespace LevelExtender
             //helper.ConsoleCommands.Add("LE_cmds", "Displays the xp table for your current levels.", this.XPT);
 
             this.Helper.Content.InvalidateCache("Data/Fish");
-            //LEE.OnXPChanged += LEE_OnXPChanged;
+            LEE.OnXPChanged += this.OnXPChanged;
             
             
         }
 
         private void SetXP(string arg1, string[] arg2)
         {
-            throw new NotImplementedException();
+            
         }
 
         public static bool WCDF(GameLocation location, int x, int y, int power, Farmer who)
@@ -239,9 +243,9 @@ namespace LevelExtender
 
         }
 
-        private void LEE_OnXPChanged(object sender, EventArgs e)
+        private void OnXPChanged(object sender, EXPEventArgs e)
         {
-            Monitor.Log("XP Changed");
+            Monitor.Log($"XP Changed: index {e.key}, EXP {e.xp}");
         }
 
         private void TellXP(string command, string[] args)
@@ -673,6 +677,33 @@ namespace LevelExtender
 
                 for (int i = 0; i < temp.Length; i++)
                 {
+                    if(temp[i] < 10 && dxp[i] != Game1.player.experiencePoints[i])
+                    {
+                        EXPEventArgs args = new EXPEventArgs { key = i, xp = (Game1.player.experiencePoints[i] - dxp[i])};
+                        LEE.RaiseEvent(args);
+                        dxp[i] = Game1.player.experiencePoints[i];
+                    }
+
+                    if (temp[i] >= 10 && !old[i])
+                    {
+                        oldXP[i] = Game1.player.experiencePoints[i];
+                        old[i] = true;
+                    }
+                    else if (old[i])
+                    {
+                        newXP[i] = Game1.player.experiencePoints[i];
+
+                        if (newXP[i] - oldXP[i] > 0 && !pres_comp)
+                        {
+                            old[i] = false;
+                            AddFishingXP(newXP[i] - oldXP[i], i);
+                        }
+
+                    }
+                }
+
+                for (int i = 0; i < temp.Length; i++)
+                {
                     if (temp[i] >= 10 && !old[i])
                     {
                         oldXP[i] = Game1.player.experiencePoints[i];
@@ -1007,6 +1038,11 @@ namespace LevelExtender
         }
         private void SaveEvents_AfterLoad(object sender, EventArgs e)
         {
+            for (int i = 0; i < 5; i++)
+            {
+                dxp[i] = Game1.player.experiencePoints[i];
+            }
+
             //object[] temp = { Game1.player.farmingLevel.Value, Game1.player.fishingLevel.Value, Game1.player.foragingLevel.Value, Game1.player.miningLevel.Value, Game1.player.combatLevel.Value };
             var config_t = this.Helper.Data.ReadJsonFile<ModData>($"data/{Constants.SaveFolderName}.json") ?? new ModData();
             addedXP[0] = config_t.FaXP;
@@ -1235,13 +1271,13 @@ namespace LevelExtender
 
     public class LEEvents
     {
-        public event EventHandler OnXPChanged;
+        public event EventHandler<EXPEventArgs> OnXPChanged;
 
-        public void RaiseEvent()
+        public void RaiseEvent(EXPEventArgs args)
         {
             if (OnXPChanged != null)
             {
-                { OnXPChanged(this, EventArgs.Empty); }
+                { OnXPChanged(this, args); }
             }
         }
     }
@@ -1250,11 +1286,13 @@ namespace LevelExtender
     {
         private int[] axp;
         LEEvents LEE;
+        EXPEventArgs args;
 
         public EXP(LEEvents lee)
         {
             axp = new int[] { 0, 0, 0, 0, 0 };
             LEE = lee;
+            args = new EXPEventArgs();
         }
 
         public int this[int key]
@@ -1265,8 +1303,11 @@ namespace LevelExtender
             {
                 if (axp[key] != value)
                 {
+                    args.key = key;
+                    args.xp = value - axp[key];
                     axp[key] = value;
-                    LEE.RaiseEvent();
+
+                    LEE.RaiseEvent(args);
                 }
 
             }
@@ -1287,7 +1328,12 @@ namespace LevelExtender
                 {
                     if (axp[i] != value[i])
                     {
-                        LEE.RaiseEvent();
+                        args.key = i;
+                        args.xp = value[i] - axp[i];
+                        axp[i] = value[i];
+
+                        LEE.RaiseEvent(args);
+                        //LEE.RaiseEvent();
                         break;
                     }
                 }
@@ -1295,6 +1341,14 @@ namespace LevelExtender
             }
         }
 
+        //dummy events for levels below 10
+
+    }
+
+    public class EXPEventArgs : EventArgs
+    {
+        public int key { get; set; }
+        public int xp { get; set; }
     }
 }
 
