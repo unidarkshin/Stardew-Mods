@@ -39,9 +39,9 @@ namespace ExtremeFishingOverhaul
             "Smothered", "Lava", "Molten", "Drake", "Sandy", "Ice", "Chocolate", "Slippery", "Shadey", "Elemental", "Expermental", "Air", "Fire",
             "Nature", "Earth", "Tree", "Mutant", "Defecating", "Physics Defying", "Passionate", "Cute", "Sexual", "Lonely", "Anxious", "Terrible",
             "Impressive", "Mentally", "Dangerous", "Intelligent", "Lucky", "Dramatic", "Embarrassed", "Conscious", "Wonderful", "Wonder", "Unique",
-            "Freezing", "Beautiful", "Enchanted", "Ghostly", "Frigid" };
+            "Freezing", "Beautiful", "Enchanted", "Ghostly", "Frigid", "Atlantic", "Clown", "Unicorn", "Floppy", "Crunchy", "Used", "Stained", "Dark" };
 
-        String[] n_post = { "Fish", "Ray", "Angelfish", "Moonfish", "Eel", "Sucker", "Dragonfish", "Minnou", "Angler", "Prowfish", "Tang", "Bream", "Salmon" }; // Last part of fish name
+        String[] n_post = { "Fish", "Ray", "Angelfish", "Moonfish", "Eel", "Sucker", "Dragonfish", "Minnou", "Angler", "Prowfish", "Tang", "Bream", "Salmon", "Tetra", "Cichlid", "Boxfish", "Lookfish" }; // Last part of fish name
 
 
         List<float> diffs = new List<float>();
