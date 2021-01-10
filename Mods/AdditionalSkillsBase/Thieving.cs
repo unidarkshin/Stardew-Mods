@@ -47,8 +47,8 @@ namespace AdditionalSkillsBase
 
             readData();
 
-            InputEvents.ButtonPressed += InputEvents_ButtonPressed;
-            SaveEvents.BeforeSave += SaveEvents_BeforeSave;
+            instance.Helper.Events.Input.ButtonPressed += InputEvents_ButtonPressed; //I think these 2 are right
+            instance.Helper.Events.GameLoop.SaveCreating += SaveEvents_BeforeSave;
 
             if (!th_c)
             {
@@ -127,7 +127,7 @@ namespace AdditionalSkillsBase
             saveData();
         }
 
-        private void InputEvents_ButtonPressed(object sender, EventArgsInput e)
+        private void InputEvents_ButtonPressed(object sender, ButtonPressedEventArgs e)
         {
             if (!Context.IsWorldReady)
                 return;
@@ -325,7 +325,7 @@ namespace AdditionalSkillsBase
 
         public void readData()
         {
-            config = instance.Helper.ReadJsonFile<ModData>($"thieving/{Constants.SaveFolderName}.json") ?? new ModData();
+            config = instance.Helper.Data.ReadJsonFile<ModData>($"thieving/{Constants.SaveFolderName}.json") ?? new ModData();
 
             xp = config.xp;
             level = config.level;
@@ -333,7 +333,7 @@ namespace AdditionalSkillsBase
             mult = config.mult;
 
             if (!File.Exists($"thieving/{Constants.SaveFolderName}.json"))
-                instance.Helper.WriteJsonFile<ModData>($"thieving/{Constants.SaveFolderName}.json", config);
+                instance.Helper.Data.WriteJsonFile<ModData>($"thieving/{Constants.SaveFolderName}.json", config);
 
             addPerks();
         }
@@ -361,7 +361,7 @@ namespace AdditionalSkillsBase
             config.xp = xp;
             config.level = level;
 
-            instance.Helper.WriteJsonFile<ModData>($"thieving/{Constants.SaveFolderName}.json", config);
+            instance.Helper.Data.WriteJsonFile<ModData>($"thieving/{Constants.SaveFolderName}.json", config);
         }
     }
 
