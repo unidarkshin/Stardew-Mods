@@ -5,5 +5,5 @@
     "Description": "Adds the sanity feature inspired by Dont Starve.",
     "UniqueID": "DevinLematty.Sanity",
     "EntryDll": "Sanity.dll",
-    "MinimumApiVersion": "2.0"
+    "MinimumApiVersion": "3.7"
 }
