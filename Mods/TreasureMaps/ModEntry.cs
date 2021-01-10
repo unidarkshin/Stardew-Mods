@@ -48,17 +48,17 @@ namespace TreasureMaps
         /// <param name="helper">Provides simplified APIs for writing mods.</param>
         public override void Entry(IModHelper helper)
         {
-            InputEvents.ButtonPressed += InputEvents_ButtonPressed;
-            TimeEvents.AfterDayStarted += TimeEvents_AfterDayStarted;
-            GameEvents.OneSecondTick += GameEvents_OneSecondTick;
-            SaveEvents.BeforeSave += SaveEvents_BeforeSave;
-            PlayerEvents.Warped += PlayerEvents_Warped;
+            helper.Events.Input.ButtonPressed += InputEvents_ButtonPressed;
+            helper.Events.GameLoop.DayStarted += TimeEvents_AfterDayStarted;
+            helper.Events.GameLoop.OneSecondUpdateTicked += GameEvents_OneSecondTick;
+            helper.Events.GameLoop.SaveCreating += SaveEvents_BeforeSave;
+            helper.Events.Player.Warped += PlayerEvents_Warped;
 
             helper.ConsoleCommands.Add("tile", "Prints treasure location and tile location.", this.printTile);
             
         }
 
-        private void PlayerEvents_Warped(object sender, EventArgsPlayerWarped e)
+        private void PlayerEvents_Warped(object sender, WarpedEventArgs e)
         {
             /*if(e.NewLocation is MineShaft && (Game1.player.currentLocation as MineShaft).mineLevel == 10)
             {
@@ -110,9 +110,9 @@ namespace TreasureMaps
             defaultPL();
         }
 
-        private void InputEvents_ButtonPressed(object sender, EventArgsInput e)
+        private void InputEvents_ButtonPressed(object sender, ButtonPressedEventArgs e)
         {
-            if (Context.IsWorldReady && Game1.player.CurrentTool is Hoe && treasure && e.IsUseToolButton && e.Cursor.GrabTile == tile) // save is loaded
+            if (Context.IsWorldReady && Game1.player.CurrentTool is Hoe && treasure && e.Button.IsUseToolButton() && e.Cursor.GrabTile == tile) // save is loaded
             {
                 //this.Monitor.Log($"Treasure Params: {e.Cursor.GrabTile + ", " + tile + ", " + Game1.player.Position}");
 
@@ -349,7 +349,7 @@ namespace TreasureMaps
                 }
 
 
-                Game1.player.money = (int)(Game1.player.money * 0.7);
+                Game1.player.Money = (int)(Game1.player.Money * 0.7);
 
                 aTimer2.Enabled = false;
 
@@ -435,7 +435,7 @@ namespace TreasureMaps
                 }
 
 
-                Game1.player.money = (int)(Game1.player.money * 0.7);
+                Game1.player.Money = (int)(Game1.player.Money * 0.7);
 
                 aTimer2.Enabled = false;
 
