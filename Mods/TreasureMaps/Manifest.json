@@ -1,13 +1,11 @@
 ﻿{
-   "Name": "Treasure_Maps",
-   "Author": "Devin_Lematty",
-   "Version": {
-      "MajorVersion": 1,
-      "MinorVersion": 0,
-      "PatchVersion": 0,
-      "Build": null
-   },
-   "Description": "A_mod.",
-   "UniqueID": "Devin_Lematty.Treasure_Maps",
-   "EntryDll": "TreasureMaps.dll"
+
+  "Name": "Treasure Maps",
+  "Author": "Devin Lematty",
+  "Version": "0.1.0",
+  "Description": "Adds treasure!",
+  "UniqueID": "Devin_Lematty.Treasure_Maps",
+  "EntryDll": "TreasureMaps.dll",
+  "MinimumApiVersion": "3.7",
+  "UpdateKeys": [ " " ],
 }
