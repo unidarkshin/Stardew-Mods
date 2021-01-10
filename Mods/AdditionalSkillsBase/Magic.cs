@@ -47,8 +47,12 @@ namespace AdditionalSkillsBase
 
             readData();
 
+            
+
             instance.Helper.Events.Input.ButtonPressed += InputEvents_ButtonPressed; //I think these 2 are right
             instance.Helper.Events.GameLoop.SaveCreating += SaveEvents_BeforeSave;
+            instance.Helper.Events.GameLoop.OneSecondUpdateTicked += TimeEvents_OneSecondTick;
+            instance.Helper.Events.GameLoop.SaveCreated += SaveEvents_AfterSave;
 
             if (!th_c)
             {
@@ -127,6 +131,11 @@ namespace AdditionalSkillsBase
             saveData();
         }
 
+        private void SaveEvents_AfterSave(object sender, EventArgs e)
+        {
+           
+        }
+
         private void InputEvents_ButtonPressed(object sender, ButtonPressedEventArgs e)
         {
             if (!Context.IsWorldReady)
@@ -155,6 +164,10 @@ namespace AdditionalSkillsBase
                     attemptPP(minCh);
                 }
             }
+        }
+        private void TimeEvents_OneSecondTick(object sender, EventArgs e)
+        {
+
         }
 
         public void attemptPP(NPC ch)
