@@ -45,14 +45,14 @@ namespace AdditionalSkillsBase
             rnd = new Random();
             shouldDraw2 = "";
 
-            GraphicsEvents.OnPostRenderEvent += GraphicsEvents_OnPostRenderEvent;
-            SaveEvents.AfterLoad += SaveEvents_AfterLoad;
-            InputEvents.ButtonPressed += InputEvents_ButtonPressed;
+            helper.Events.Display.Rendered += GraphicsEvents_OnPostRenderEvent;
+            helper.Events.GameLoop.SaveLoaded += SaveEvents_AfterLoad;
+            helper.Events.Input.ButtonPressed += InputEvents_ButtonPressed;
 
 
         }
 
-        private void InputEvents_ButtonPressed(object sender, EventArgsInput e)
+        private void InputEvents_ButtonPressed(object sender, ButtonPressedEventArgs e)
         {
             if (Context.IsWorldReady && Game1.activeClickableMenu is GameMenu)
             {
