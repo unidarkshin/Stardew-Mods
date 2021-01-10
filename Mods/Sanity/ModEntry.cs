@@ -47,13 +47,13 @@ namespace Sanity
             terfs = new List<ResourceClump>();
             ters = new Dictionary<Vector2, TerrainFeature>();
 
-            InputEvents.ButtonPressed += InputEvents_ButtonPressed;
-            GameEvents.OneSecondTick += GameEvents_OneSecondTick;
-            SaveEvents.AfterLoad += SaveEvents_AfterLoad;
-            SaveEvents.BeforeSave += SaveEvents_BeforeSave;
-            GraphicsEvents.OnPostRenderEvent += GraphicsEvents_OnPostRenderEvent;
-            TimeEvents.TimeOfDayChanged += TimeEvents_TimeOfDayChanged;
-            TimeEvents.AfterDayStarted += TimeEvents_AfterDayStarted;
+            helper.Events.Input.ButtonPressed += InputEvents_ButtonPressed;
+            helper.Events.GameLoop.OneSecondUpdateTicked += GameEvents_OneSecondTick;
+            helper.Events.GameLoop.SaveLoaded += SaveEvents_AfterLoad;
+            helper.Events.GameLoop.SaveCreating += SaveEvents_BeforeSave;
+            helper.Events.Display.RenderedWorld += GraphicsEvents_OnPostRenderEvent; // not sure if this is the right one
+            helper.Events.GameLoop.TimeChanged += TimeEvents_TimeOfDayChanged; // Also not sure if this is what is needed
+            helper.Events.GameLoop.DayStarted += TimeEvents_AfterDayStarted;
 
             helper.ConsoleCommands.Add("set_sanity", "Sets your sanity. Syntax: set_sanity <Int>", this.set_sanity);
         }
@@ -66,12 +66,12 @@ namespace Sanity
             no_mons = false;
         }
 
-        private void TimeEvents_TimeOfDayChanged(object sender, EventArgsIntChanged e)
+        private void TimeEvents_TimeOfDayChanged(object sender, TimeChangedEventArgs e)
         {
             if (!Context.IsWorldReady)
                 return;
 
-            int change = e.PriorInt - e.NewInt;
+            int change = e.OldTime - e.NewTime;  // changed from e.PriorInt - e.NewInt; 
 
             if (Math.Abs(change) > 100)
             {
@@ -101,7 +101,7 @@ namespace Sanity
         {
             config.sanity = sanity;
 
-            instance.Helper.WriteJsonFile<ModData>($"Data/{Constants.SaveFolderName}.json", config);
+            instance.Helper.Data.WriteJsonFile<ModData>($"Data/{Constants.SaveFolderName}.json", config); //updated for current 3.8
 
             rem_mons();
         }
@@ -205,7 +205,7 @@ namespace Sanity
         private bool no_mons = false;
         private Timer aTimer3;
 
-        private void InputEvents_ButtonPressed(object sender, EventArgsInput e)
+        private void InputEvents_ButtonPressed(object sender, ButtonPressedEventArgs e)
         {
             if (!Context.IsWorldReady)
                 return;
@@ -237,9 +237,9 @@ namespace Sanity
 
             double s = 0.0;
 
-            if (e.IsUseToolButton && Game1.player.CurrentTool is Axe)
+            if (e.Button.IsUseToolButton() && Game1.player.CurrentTool is Axe)
                 s -= 0.1;
-            else if (e.IsUseToolButton && Game1.player.CurrentTool is WateringCan)
+            else if (e.Button.IsUseToolButton() && Game1.player.CurrentTool is WateringCan)
                 s += 0.2;
             else if (e.Button == SButton.MouseLeft && Game1.currentLocation.isCharacterAtTile(e.Cursor.GrabTile) != null)
                 s += 0.4;
@@ -353,7 +353,7 @@ namespace Sanity
 
         private void SaveEvents_AfterLoad(object sender, EventArgs e)
         {
-            config = instance.Helper.ReadJsonFile<ModData>($"Data/{Constants.SaveFolderName}.json") ?? new ModData();
+            config = instance.Helper.Data.ReadJsonFile<ModData>($"Data/{Constants.SaveFolderName}.json") ?? new ModData();
 
             sanity = config.sanity;
 
@@ -507,7 +507,7 @@ namespace Sanity
                             Game1.exitActiveMenu();
                         break;
                     case 16:
-                        Game1.fadeBlack();
+                        Game1.globalFadeToBlack(); // I assume its what is needed
                         Game1.fadeScreenToBlack();
                         break;
                     case 17:
