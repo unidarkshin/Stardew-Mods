@@ -98,11 +98,11 @@ namespace CooperativeEnhanced
 
         private void SaveEvents_AfterLoad(object sender, EventArgs e)
         {
-            config = instance.Helper.ReadJsonFile<ModConfig>($"Data/{Constants.SaveFolderName}.json") ?? new ModConfig();
+            config = instance.Helper.Data.ReadJsonFile<ModConfig>($"Data/{Constants.SaveFolderName}.json") ?? new ModConfig();
             CMult = config.coopMult;
 
             if (!File.Exists($"Data/{Constants.SaveFolderName}.json"))
-                instance.Helper.WriteJsonFile<ModConfig>($"Data/{Constants.SaveFolderName}.json", config);
+                instance.Helper.Data.WriteJsonFile<ModConfig>($"Data/{Constants.SaveFolderName}.json", config);
 
             expPts = Game1.player.experiencePoints.GetEnumerator();
         }
