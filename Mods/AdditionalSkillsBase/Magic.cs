@@ -37,33 +37,42 @@ namespace AdditionalSkillsBase
         public List<int> perks;
         public List<string> perksInfo;
 
+        public List<int> skills;
+        public List<string> skillsInfo;
+
         public Magic(Mod instance, bool th_c)
         {
             this.instance = instance;
             rnd = new Random();
+            //perky perks
             perks = new List<int>();
             perksInfo = new List<string>();
             perkStrings();
+            //skilly skills
+            skills = new List<int>();
+            skillsInfo = new List<string>();
+            skillStrings();
 
-            readData();
-
+            //Friend
+            readData();//Friend
+            //Friend
             
 
-            instance.Helper.Events.Input.ButtonPressed += InputEvents_ButtonPressed; //I think these 2 are right
+            instance.Helper.Events.Input.ButtonPressed += InputEvents_ButtonPressed;
             instance.Helper.Events.GameLoop.SaveCreating += SaveEvents_BeforeSave;
             instance.Helper.Events.GameLoop.OneSecondUpdateTicked += TimeEvents_OneSecondTick;
             instance.Helper.Events.GameLoop.SaveCreated += SaveEvents_AfterSave;
 
             if (!th_c)
             {
-                instance.Helper.ConsoleCommands.Add("th_lev", "Sets your thieving level. Syntax: th_lev <Integer>", this.th_lev);
-                instance.Helper.ConsoleCommands.Add("th_print", "Prints Your thieving level.", this.th_print);
-                instance.Helper.ConsoleCommands.Add("th_xp", "Sets your thieving xp.", this.th_xp);
-                instance.Helper.ConsoleCommands.Add("th_perks", "List the thieving perks gained every 10 levels.", this.th_perks);
+                instance.Helper.ConsoleCommands.Add("mg_lev", "Sets your thieving level. Syntax: th_lev <Integer>", this.th_lev);
+                instance.Helper.ConsoleCommands.Add("mg_print", "Prints Your thieving level.", this.th_print);
+                instance.Helper.ConsoleCommands.Add("mg_xp", "Sets your thieving xp.", this.th_xp);
+                instance.Helper.ConsoleCommands.Add("mg_perks", "List the thieving perks gained every 10 levels.", this.mg_perks);
             }
         }
 
-        private void th_perks(string arg1, string[] arg2)
+        private void mg_perks(string arg1, string[] arg2)
         {
             foreach (string s in perksInfo)
             {
@@ -74,9 +83,9 @@ namespace AdditionalSkillsBase
 
         public void perkStrings()
         {
-            perksInfo.Add("Level 10: 1% chance for random item.");
-            perksInfo.Add("Level 20: Debuffs are halved.");
-            perksInfo.Add("Level 30: XP Doubled.");
+            perksInfo.Add("Level 10: Transmute fish into experience. Cost of fish / 10");
+            perksInfo.Add("Level 20: Mana cost 10% less");
+            perksInfo.Add("Level 30: XP Bonus for day for meditating doubled.");
             perksInfo.Add("Level 40: Base pickpocket chance increased to 15% (Default 10%).");
             perksInfo.Add("Level 50: Regenerate health & stamina on successful pickpockets.");
             perksInfo.Add("Level 60: Time slowed movement on failure is halved.");
@@ -85,8 +94,12 @@ namespace AdditionalSkillsBase
             perksInfo.Add("Level 90: 3% chance for random item.");
             perksInfo.Add("Level 100: Regenerate 50% stamina & health on successful pickpocket.");
         }
+        public void skillStrings()
+        {
+            skillsInfo.Add("BOOB)")
+        }
 
-        private void th_xp(string arg1, string[] arg2)
+            private void th_xp(string arg1, string[] arg2)
         {
             if (int.TryParse(arg2[0], out int l) && l > 0)
             {
@@ -236,7 +249,7 @@ namespace AdditionalSkillsBase
 
                 Game1.player.Money += m;
 
-                Game1.chatBox.addMessage($"You stole {m} coins from {ch.displayName}!", Color.DarkTurquoise);
+                Game1.chatBox.addMessage($"You magicked {m} coins from {ch.displayName}!", Color.DarkTurquoise);
 
                 addXP((int)(rnd.Next(1, 3) * ((level + 1) / 2.0)));
 
@@ -262,12 +275,12 @@ namespace AdditionalSkillsBase
 
                     addXP((5 + (level * 5)) + (int)(item.salePrice() * (level / 100.0)));
 
-                    Game1.chatBox.addMessage($"You stole {item.DisplayName} from {ch.displayName}!", Color.DeepPink);
+                    Game1.chatBox.addMessage($"You magicked {item.DisplayName} from {ch.displayName}!", Color.DeepPink);
                 }
             }
             else
             {
-                Game1.chatBox.addMessage($"You were caught pickpocketing {ch.displayName}!", Color.Red);
+                Game1.chatBox.addMessage($"You were caught magicking {ch.displayName}!", Color.Red);
 
                 if (perks.Contains(2))
                 {
@@ -293,7 +306,7 @@ namespace AdditionalSkillsBase
                 x = x * 2;
 
             xp += x;
-            Game1.chatBox.addMessage($"You gained {x} thieving experience!", Color.Green);
+            Game1.chatBox.addMessage($"You gained {x} magic experience!", Color.Green);
 
             checkForLevelUp();
         }
@@ -304,7 +317,7 @@ namespace AdditionalSkillsBase
             {
                 level++;
                 xp = 0;
-                Game1.chatBox.addMessage($"You leveled up Thieving!", Color.Violet);
+                Game1.chatBox.addMessage($"You leveled up Magic!", Color.Violet);
 
                 if (level % 10 == 0)
                     addPerks();
@@ -338,7 +351,7 @@ namespace AdditionalSkillsBase
 
         public void readData()
         {
-            config = instance.Helper.Data.ReadJsonFile<MagicData>($"thieving/{Constants.SaveFolderName}.json") ?? new MagicData();
+            config = instance.Helper.Data.ReadJsonFile<MagicData>($"magic/{Constants.SaveFolderName}.json") ?? new MagicData();
 
             xp = config.xp;
             level = config.level;
@@ -346,7 +359,7 @@ namespace AdditionalSkillsBase
             mult = config.mult;
 
             if (!File.Exists($"thieving/{Constants.SaveFolderName}.json"))
-                instance.Helper.Data.WriteJsonFile<MagicData>($"thieving/{Constants.SaveFolderName}.json", config);
+                instance.Helper.Data.WriteJsonFile<MagicData>($"magic/{Constants.SaveFolderName}.json", config);
 
             addPerks();
         }
@@ -374,7 +387,7 @@ namespace AdditionalSkillsBase
             config.xp = xp;
             config.level = level;
 
-            instance.Helper.Data.WriteJsonFile<MagicData>($"thieving/{Constants.SaveFolderName}.json", config);
+            instance.Helper.Data.WriteJsonFile<MagicData>($"magic/{Constants.SaveFolderName}.json", config);
         }
     }
 
