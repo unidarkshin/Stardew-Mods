@@ -96,7 +96,7 @@ namespace AdditionalSkillsBase
         }
         public void skillStrings()
         {
-            skillsInfo.Add("BOOB)")
+            skillsInfo.Add("BOOB)");
         }
 
             private void th_xp(string arg1, string[] arg2)
