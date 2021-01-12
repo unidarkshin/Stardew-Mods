@@ -14,6 +14,7 @@ using System.Collections;
 using System.Timers;
 using System.Linq;
 using Harmony;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace LevelExtender
 {
@@ -61,8 +62,17 @@ namespace LevelExtender
         private double mpMult;
 
         private Timer aTimer2 = new Timer();
+        private bool showXPBar;
+        //private Timer xpBarTimer = new Timer();
 
         int[] dxp = { 0, 0, 0, 0, 0 };
+
+        List<int> skillsToDraw = new List<int>();
+        List<int> skillsToDrawOrder = new List<int>();
+
+        List<Timer> xpBarTimers = new List<Timer>();
+
+        int skillCount = 5;
 
         public ModEntry()
         {
@@ -73,6 +83,13 @@ namespace LevelExtender
             s_mod = -1.0;
             mpload = false;
             mpMult = 1.0;
+
+            for (int i = 0; i < skillCount; i++)
+            {
+                skillsToDraw.Add(0);
+                //skillsToDrawOrder.Add(-1);
+            }
+            
         }
 
         public override object GetApi()
@@ -126,6 +143,7 @@ namespace LevelExtender
             helper.Events.Input.ButtonPressed += this.ControlEvent_KeyPressed;
             helper.Events.GameLoop.DayStarted += this.TimeEvent_AfterDayStarted;
             helper.Events.Input.ButtonReleased += this.ControlEvent_KeyReleased;
+            helper.Events.Display.Rendered += this.Display_Rendered;
 
             //LEE.OnXPChanged += LEE;
             
@@ -144,9 +162,150 @@ namespace LevelExtender
             
         }
 
-        private void SetXP(string arg1, string[] arg2)
+        private void Display_Rendered(object sender, RenderedEventArgs e)
         {
-            
+            if (!Context.IsWorldReady)
+                return;
+
+            if (xpBarTimers.Count > 0)
+            {
+                string[] skills = { "Farming", "Fishing", "Foraging", "Mining", "Combat" };
+                int[] skillLevs = { Game1.player.FarmingLevel, Game1.player.FishingLevel, Game1.player.ForagingLevel, Game1.player.MiningLevel, Game1.player.CombatLevel };
+                int startX = Game1.spriteBatch.GraphicsDevice.Viewport.Width - 500;
+                int startY = 5;
+                int sep = 30;
+
+                for (int i = 0; i < skillsToDrawOrder.Count; i++)
+                {
+                    
+                    
+                    int key = skillsToDrawOrder[i];
+                    int xp = skillsToDraw[key];
+                    int lev = skillLevs[key];
+                    int startXP = StartXP(lev);
+
+                    int curXP;
+
+                    if (lev < 10)
+                    {
+                        curXP = Game1.player.experiencePoints[key];
+                    }
+                    else
+                    {
+                        curXP = addedXP[key];
+                    }
+                    
+                    int maxXP = GetReqXP(lev);
+
+                    if (startXP > 0)
+                    {
+                        maxXP = maxXP - startXP;
+                        curXP = curXP - startXP;
+                        startXP = 0;
+                    }
+
+                    int iWidth = 198;
+                    double mod = iWidth / (maxXP * 1.0);
+                    int bar2w = (int)Math.Round(xp * mod) + 1;
+                    int bar1w = (int)Math.Round(curXP * mod) - bar2w;
+                    
+
+                    Game1.spriteBatch.DrawString(Game1.smallFont, $"{skills[key]}:", new Vector2(startX, startY + (100 * i)), Color.Black, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 3), SpriteEffects.None, 0.5f);
+                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX, startY + (100 * i) + sep, 200, 20), Color.Black);
+                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1, startY + (100 * i) + sep + 1, bar1w, 18), Color.SeaGreen);
+                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1 + bar1w, startY + (100 * i) + sep + 1, bar2w, 18), Color.Turquoise);
+
+                    Vector2 mPos = new Vector2(Game1.getMouseX(), Game1.getMouseY());
+                    Vector2 bCenter = new Vector2(startX + (200 / 2), startY + (20 / 2));
+                    float dist = Vector2.Distance(mPos, bCenter);
+
+                    if(dist <= 100f)
+                    {
+                        if (lev < 10)
+                        {
+                            curXP = Game1.player.experiencePoints[key];
+                        }
+                        else
+                        {
+                            curXP = addedXP[key];
+                        }
+
+                        maxXP = GetReqXP(lev);
+
+                        float f = Math.Min(1.0f / dist, 1.0f);
+
+                        string xpt = $"( {curXP} / {maxXP} )";
+
+                        Game1.spriteBatch.DrawString(Game1.smallFont, xpt, new Vector2(startX + 1 + (198/2) - xpt.Length, startY + (100 * i) + sep + 1 + 2), Color.White * f, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 4), SpriteEffects.None, 0.5f);
+                    }
+
+                }
+
+                
+
+
+            }
+            //Game1.spriteBatch.Draw(Game1.mouseCursors, new Vector2(Game1.getMouseX(), Game1.getMouseY()), Game1.getSourceRectForStandardTileSheet(Game1.mouseCursors, Game1.options.SnappyMenus ? 44 : 0, 16, 16), Color.White * Game1.mouseCursorTransparency, 0.0f, Vector2.Zero, Game1.pixelZoom + Game1.dialogueButtonScale / 150f, SpriteEffects.None, 0.1f);
+        }
+
+        public int StartXP(int lev)
+        {
+            int xp = 0;
+
+            if(lev > 0 && lev < 10)
+            {
+                xp = defReqXPs[lev - 1];
+            }
+
+            return xp;
+        }
+
+        private void SetXP(string command, string[] arg)
+        {
+            if (!Context.IsWorldReady || arg.Length < 2 || !int.TryParse(arg[1], out int xp))
+                return;
+
+            int[] skillLevs = { Game1.player.FarmingLevel, Game1.player.FishingLevel, Game1.player.ForagingLevel, Game1.player.MiningLevel, Game1.player.CombatLevel };
+
+            if (arg[0].ToLower() == "farming")
+            {
+                if (skillLevs[0] < 10)
+                    Game1.player.experiencePoints[0] = xp;
+                else
+                    addedXP[0] = xp;
+            }
+            else if (arg[0].ToLower() == "fishing")
+            {
+                if (skillLevs[1] < 10)
+                    Game1.player.experiencePoints[1] = xp;
+                else
+                    addedXP[1] = xp;
+            }
+            else if (arg[0].ToLower() == "foraging")
+            {
+                if (skillLevs[2] < 10)
+                    Game1.player.experiencePoints[2] = xp;
+                else
+                    addedXP[2] = xp;
+            }
+            else if (arg[0].ToLower() == "mining")
+            {
+                if (skillLevs[3] < 10)
+                    Game1.player.experiencePoints[3] = xp;
+                else
+                    addedXP[3] = xp;
+            }
+            else if (arg[0].ToLower() == "combat")
+            {
+                if (skillLevs[4] < 10)
+                    Game1.player.experiencePoints[4] = xp;
+                else
+                    addedXP[4] = xp;
+            }
+            else
+            {
+                Monitor.Log("ERROR - setXP: Invalid skill name.");
+            }
         }
 
         public static bool WCDF(GameLocation location, int x, int y, int power, Farmer who)
@@ -196,17 +355,100 @@ namespace LevelExtender
             
         }
 
-        private void SetTimer(int time)
+        List<DateTime> xpBarStartTime = new List<DateTime>();
+
+        private void SetTimer(int time, int index)
         {
-            // Create a timer with a two second interval.
-            aTimer2 = new System.Timers.Timer(time);
-            // Hook up the Elapsed event for the timer. 
+
+            if (index == 0)
+            {
+                // Create a timer with a two second interval.
+                aTimer = new System.Timers.Timer(1100);
+                // Hook up the Elapsed event for the timer. 
+                aTimer.Elapsed += OnTimedEvent;
+                aTimer.AutoReset = false;
+                aTimer.Enabled = true;
+
+            }
+            else if (index==1)
+            {
+                // Create a timer with a two second interval.
+                aTimer2 = new System.Timers.Timer(time);
+                // Hook up the Elapsed event for the timer. 
                 aTimer2.Elapsed += OnTimedEvent2;
 
-            aTimer2.AutoReset = false;
-            aTimer2.Enabled = true;
+                aTimer2.AutoReset = false;
+                aTimer2.Enabled = true;
+
+            }
+            else if (index == 2)
+            {
+                //showXPBar = true;
+                int count = xpBarTimers.Count;
+
+                xpBarTimers.Add(new System.Timers.Timer(time));
+                // Hook up the Elapsed event for the timer. 
+                xpBarTimers[count].Elapsed += EndXPBar;
+
+                xpBarTimers[count].AutoReset = false;
+                xpBarTimers[count].Enabled = true;
+
+                xpBarStartTime.Add(DateTime.Now);
+                    
+            }
 
 
+
+        }
+
+        private void EndXPBar(object sender, ElapsedEventArgs e)
+        {
+            xpBarTimers[0].Enabled = false;
+            xpBarTimers.RemoveAt(0);
+            pushElementsToZero(xpBarTimers);
+
+            int key = skillsToDrawOrder[0];
+            skillsToDraw[key] = 0;
+            skillsToDrawOrder.RemoveAt(0);
+            pushElementsToZero(skillsToDrawOrder);
+
+            xpBarStartTime.RemoveAt(0);
+            pushElementsToZero(xpBarStartTime);
+            
+        }
+
+        private void pushElementsToZero(List<int> list)
+        {
+            List<int> temp = new List<int>();
+
+            foreach (var item in list)
+            {
+                temp.Add(item);
+            }
+
+            list = temp;
+        }
+        private void pushElementsToZero(List<Timer> list)
+        {
+            List<Timer> temp = new List<Timer>();
+
+            foreach (var item in list)
+            {
+                temp.Add(item);
+            }
+
+            list = temp;
+        }
+        private void pushElementsToZero(List<DateTime> list)
+        {
+            List<DateTime> temp = new List<DateTime>();
+
+            foreach (var item in list)
+            {
+                temp.Add(item);
+            }
+
+            list = temp;
         }
 
         private void OnTimedEvent2(object sender, ElapsedEventArgs e)
@@ -245,8 +487,21 @@ namespace LevelExtender
 
         private void OnXPChanged(object sender, EXPEventArgs e)
         {
+            if (e.xp < 0 || e.xp > 1000)
+                return;
+
             Monitor.Log($"XP Changed: index {e.key}, EXP {e.xp}");
+
+            SetTimer(5000, 2);
+
+
+            skillsToDraw[e.key] = e.xp;
+
+            if (!skillsToDrawOrder.Contains(e.key))
+                skillsToDrawOrder.Add(e.key);
+            
         }
+
 
         private void TellXP(string command, string[] args)
         {
@@ -317,6 +572,8 @@ namespace LevelExtender
             if (args[0].ToLower() == "farming")
             {
                 Game1.player.farmingLevel.Value = n;
+                Game1.player.experiencePoints[0] = GetDefStartXP(n);
+                
                 if (n < 10)
                 {
                     sLevs[0] = 10;
@@ -339,6 +596,7 @@ namespace LevelExtender
             else if (args[0].ToLower() == "fishing")
             {
                 Game1.player.fishingLevel.Value = n;
+                Game1.player.experiencePoints[1] = GetDefStartXP(n);
                 if (n < 10)
                 {
                     sLevs[1] = 10;
@@ -361,6 +619,7 @@ namespace LevelExtender
             else if (args[0].ToLower() == "foraging")
             {
                 Game1.player.foragingLevel.Value = n;
+                Game1.player.experiencePoints[2] = GetDefStartXP(n);
                 if (n < 10)
                 {
                     sLevs[2] = 10;
@@ -383,6 +642,7 @@ namespace LevelExtender
             else if (args[0].ToLower() == "mining")
             {
                 Game1.player.miningLevel.Value = n;
+                Game1.player.experiencePoints[3] = GetDefStartXP(n);
                 if (n < 10)
                 {
                     sLevs[3] = 10;
@@ -405,6 +665,7 @@ namespace LevelExtender
             else if (args[0].ToLower() == "combat")
             {
                 Game1.player.combatLevel.Value = n;
+                Game1.player.experiencePoints[4] = GetDefStartXP(n);
                 if (n < 10)
                 {
                     sLevs[4] = 10;
@@ -461,22 +722,22 @@ namespace LevelExtender
                 if (e.OldMenu.GetType().FullName == "SkillPrestige.Menus.PrestigeMenu")
                 {
                     //closing();
-                    SetTimer();
+                    SetTimer(1100, 0);
                 }
                 else if (e.OldMenu.GetType().FullName == "StardewValley.Menus.GameMenu")
                 {
                     //closing();
-                    SetTimer();
+                    SetTimer(1100, 0);
                 }
                 else if (e.OldMenu.GetType().FullName == "SkillPrestige.Menus.SettingsMenu")
                 {
                     //closing();
-                    SetTimer();
+                    SetTimer(1100, 0);
                 }
                 else if (e.OldMenu.GetType().FullName == "SkillPrestige.Menus.Dialogs.WarningDialog")
                 {
                     //closing();
-                    SetTimer();
+                    SetTimer(1100, 0);
                 }
             }
         }
@@ -579,46 +840,46 @@ namespace LevelExtender
             pres_comp = false;
             shLev = new bool[] { true, true, true, true, true };
         }
-        private int GetExp(int x)
+
+        int[] defReqXPs = { 100, 380, 770, 1300, 2150, 3300, 4800, 6900, 10000, 15001 };
+
+        private int GetReqXP(int lev)
         {
-            switch (x)
+            int exp = 0;
+
+            if(lev < 10)
             {
-                case 0:
-                    x = 0;
-                    break;
-                case 1:
-                    x = 100;
-                    break;
-                case 2:
-                    x = 380;
-                    break;
-                case 3:
-                    x = 770;
-                    break;
-                case 4:
-                    x = 1300;
-                    break;
-                case 5:
-                    x = 2150;
-                    break;
-                case 6:
-                    x = 3300;
-                    break;
-                case 7:
-                    x = 4800;
-                    break;
-                case 8:
-                    x = 6900;
-                    break;
-                case 9:
-                    x = 10000;
-                    break;
-                default:
-                    x = 15001;
-                    break;
+                exp = defReqXPs[lev];
             }
-            return x;
+            else
+            {
+                exp = (int)Math.Round((1000 * lev + (lev * lev * lev * 0.33)) * xp_mod);
+            }
+
+            return exp;
         }
+
+        private int GetDefStartXP(int lev)
+        {
+            int exp;
+
+            if (lev == 0)
+            {
+                exp = 0;
+            }
+            else if (lev > 0 && lev < 11)
+            {
+                exp = defReqXPs[lev - 1];
+            }
+            else
+            {
+                exp = 15001;
+            }
+            
+
+            return exp;
+        }
+
         private void ControlEvent_KeyPressed(object sender, ButtonPressedEventArgs e)
         {
             if (!Context.IsWorldReady)
@@ -937,11 +1198,11 @@ namespace LevelExtender
             {
                 mpmod = this.Helper.ModRegistry.GetApi<MPModApi>("f1r3w477.Level_Extender");
                 mpload = true;
-                SetTimer(1000);
+                SetTimer(1000, 1);
             }
             else if (mpload)
             {
-                SetTimer(1000);
+                SetTimer(1000, 1);
             }
                 no_mons = false;
         }
@@ -1234,15 +1495,7 @@ namespace LevelExtender
                 //Monitor.Log($"{Game1.player.Name} retained {i}(index) at {sLevs[i]}.");
             }
         }
-        private void SetTimer()
-        {
-            // Create a timer with a two second interval.
-            aTimer = new System.Timers.Timer(1100);
-            // Hook up the Elapsed event for the timer. 
-            aTimer.Elapsed += OnTimedEvent;
-            aTimer.AutoReset = false;
-            aTimer.Enabled = true;
-        }
+
         private void OnTimedEvent(object source, ElapsedEventArgs e)
         {
             this.Closing();
@@ -1349,6 +1602,13 @@ namespace LevelExtender
     {
         public int key { get; set; }
         public int xp { get; set; }
+    }
+
+    public class XPBar
+    {
+        int key;
+        int xpc;
+        
     }
 }
 
