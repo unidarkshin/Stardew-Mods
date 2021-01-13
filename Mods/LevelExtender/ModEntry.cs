@@ -45,13 +45,15 @@ namespace LevelExtender
         float oStamina = 0.0f;
         public bool initialtooluse = false;
 
-        
+
 
         bool no_mons = false;
 
         private LEModApi API;
 
         public LEEvents LEE;
+
+        public ModEntry LE;
 
         public EXP addedXP;
         private int total_m;
@@ -74,9 +76,12 @@ namespace LevelExtender
 
         int skillCount = 5;
 
+        List<XPBar> xpBars = new List<XPBar>();
+
         public ModEntry()
         {
             instance = this;
+            LE = this;
             LEE = new LEEvents();
             addedXP = new EXP(LEE);
             total_m = 0;
@@ -89,7 +94,7 @@ namespace LevelExtender
                 skillsToDraw.Add(0);
                 //skillsToDrawOrder.Add(-1);
             }
-            
+
         }
 
         public override object GetApi()
@@ -146,7 +151,7 @@ namespace LevelExtender
             helper.Events.Display.Rendered += this.Display_Rendered;
 
             //LEE.OnXPChanged += LEE;
-            
+
             helper.ConsoleCommands.Add("xp", "Displays the xp table for your current levels.", this.XPT);
             helper.ConsoleCommands.Add("lev", "Sets the player's level: lev <type> <number>", this.SetLev);
             helper.ConsoleCommands.Add("wm_toggle", "Toggles monster spawning: wm_toggle", this.WmT);
@@ -158,24 +163,29 @@ namespace LevelExtender
 
             this.Helper.Content.InvalidateCache("Data/Fish");
             LEE.OnXPChanged += this.OnXPChanged;
-            
-            
+
+
         }
+
+        int yChange = 0;
+        bool startMove = false;
 
         private void Display_Rendered(object sender, RenderedEventArgs e)
         {
             if (!Context.IsWorldReady)
                 return;
 
-            if (xpBarTimers.Count > 0)
+            for (int i = 0; i < xpBars.Count; i++)
             {
-                string[] skills = { "Farming", "Fishing", "Foraging", "Mining", "Combat" };
-                int[] skillLevs = { Game1.player.FarmingLevel, Game1.player.FishingLevel, Game1.player.ForagingLevel, Game1.player.MiningLevel, Game1.player.CombatLevel };
-                int startX = Game1.spriteBatch.GraphicsDevice.Viewport.Width - 500;
-                int startY = 5;
-                int sep = 30;
 
-                for (int i = 0; i < skillsToDrawOrder.Count; i++)
+                string[] skills = { "F a r m i n g", "F i s h i n g", "F o r a g i n g", "M i n i n g", "C o m b a t" };
+                int[] skillLevs = { Game1.player.FarmingLevel, Game1.player.FishingLevel, Game1.player.ForagingLevel, Game1.player.MiningLevel, Game1.player.CombatLevel };
+                int startX = 8;
+                int startY = 8;
+                int sep = 30;
+                int barSep = 60;
+
+                /*for (int i = 0; i < skillsToDrawOrder.Count; i++)
                 {
                     
                     
@@ -183,9 +193,88 @@ namespace LevelExtender
                     int xp = skillsToDraw[key];
                     int lev = skillLevs[key];
                     int startXP = StartXP(lev);
+                    */
 
-                    int curXP;
 
+                int key = xpBars[i].key;
+                int xp = xpBars[i].xpc;
+                int lev = skillLevs[key];
+                int startXP = StartXP(lev);
+                double deltaTime = (DateTime.Now - xpBars[i].time).TotalMilliseconds;
+                float transp;
+
+                if (deltaTime >= 0 && deltaTime <= 1000)
+                {
+                    transp = ((float)deltaTime) / 1200.0f;
+                }
+                else if (deltaTime > 1000 && deltaTime <= 4000)
+                {
+                    transp = 0.833f;
+                }
+                else
+                {
+                    transp = ((float)(5000 - deltaTime)) / 1200.0f;
+                }
+
+
+                int curXP;
+
+                if (lev < 10)
+                {
+                    curXP = Game1.player.experiencePoints[key];
+                }
+                else
+                {
+                    curXP = addedXP[key];
+                }
+
+                int maxXP = GetReqXP(lev);
+
+                if (startXP > 0)
+                {
+                    maxXP = maxXP - startXP;
+                    curXP = curXP - startXP;
+                    startXP = 0;
+                }
+
+                int iWidth = 198;
+                double mod = iWidth / (maxXP * 1.0);
+                int bar2w = (int)Math.Round(xp * mod) + 1;
+                int bar1w = (int)Math.Round(curXP * mod) - bar2w;
+
+                
+                if(i == 0 && startMove && deltaTime <= 50)
+                {
+                    yChange = 0;
+                    startMove = false;
+                }
+                else if(i == 0 && !startMove && (deltaTime > 3950 && deltaTime < 4000))
+                {
+                    //yChange = 0;
+                    startMove = true;
+                    //Monitor.Log("startmove!");
+                }
+                else if(i == 0 && deltaTime >= 4000)
+                {
+                    yChange = (int)Math.Round((deltaTime - 4000) / 15.625);
+                    //Monitor.Log($"yChange Value: {yChange}");
+                }
+
+                Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX - 7, startY + (barSep * i) - 7 - yChange, 214, 64), Color.DarkRed * transp);
+                Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX - 5, startY + (barSep * i) - 5 - yChange, 210, 60), new Color(210, 173, 85) * transp);
+                Game1.spriteBatch.DrawString(Game1.smallFont, $"{skills[key]}", new Vector2(startX + 35 - ((skills[key].Length - 13) * 3), startY + (barSep * i) - yChange), Color.Black * transp, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 3), SpriteEffects.None, 0.5f);
+                Game1.spriteBatch.DrawString(Game1.smallFont, $"{skills[key]}", new Vector2(startX + 35 + 1 - ((skills[key].Length - 13) * 3), startY + (barSep * i) + 1 - yChange), Color.Black * transp, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 3), SpriteEffects.None, 0.5f);
+
+                Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX, startY + (barSep * i) + sep - yChange, 200, 20), Color.Black * transp);
+                Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1, startY + (barSep * i) + sep + 1 - yChange, bar1w, 18), Color.SeaGreen * transp);
+                Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1 + bar1w, startY + (barSep * i) + sep + 1 - yChange, bar2w, 18), Color.Turquoise * transp);
+
+                Vector2 mPos = new Vector2(Game1.getMouseX(), Game1.getMouseY());
+                Vector2 bCenter = new Vector2(startX + (200 / 2), startY + (barSep * i) + sep + (20 / 2) - yChange);
+                float dist = Vector2.Distance(mPos, bCenter);
+
+                if (dist <= 250f)
+                {
                     if (lev < 10)
                     {
                         curXP = Game1.player.experiencePoints[key];
@@ -194,57 +283,23 @@ namespace LevelExtender
                     {
                         curXP = addedXP[key];
                     }
-                    
-                    int maxXP = GetReqXP(lev);
 
-                    if (startXP > 0)
-                    {
-                        maxXP = maxXP - startXP;
-                        curXP = curXP - startXP;
-                        startXP = 0;
-                    }
+                    maxXP = GetReqXP(lev);
 
-                    int iWidth = 198;
-                    double mod = iWidth / (maxXP * 1.0);
-                    int bar2w = (int)Math.Round(xp * mod) + 1;
-                    int bar1w = (int)Math.Round(curXP * mod) - bar2w;
-                    
+                    float f = Math.Min(25f / dist, 1.0f);
 
-                    Game1.spriteBatch.DrawString(Game1.smallFont, $"{skills[key]}:", new Vector2(startX, startY + (100 * i)), Color.Black, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 3), SpriteEffects.None, 0.5f);
-                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX, startY + (100 * i) + sep, 200, 20), Color.Black);
-                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1, startY + (100 * i) + sep + 1, bar1w, 18), Color.SeaGreen);
-                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1 + bar1w, startY + (100 * i) + sep + 1, bar2w, 18), Color.Turquoise);
+                    string xpt = $"{curXP} / {maxXP}";
 
-                    Vector2 mPos = new Vector2(Game1.getMouseX(), Game1.getMouseY());
-                    Vector2 bCenter = new Vector2(startX + (200 / 2), startY + (20 / 2));
-                    float dist = Vector2.Distance(mPos, bCenter);
-
-                    if(dist <= 100f)
-                    {
-                        if (lev < 10)
-                        {
-                            curXP = Game1.player.experiencePoints[key];
-                        }
-                        else
-                        {
-                            curXP = addedXP[key];
-                        }
-
-                        maxXP = GetReqXP(lev);
-
-                        float f = Math.Min(1.0f / dist, 1.0f);
-
-                        string xpt = $"( {curXP} / {maxXP} )";
-
-                        Game1.spriteBatch.DrawString(Game1.smallFont, xpt, new Vector2(startX + 1 + (198/2) - xpt.Length, startY + (100 * i) + sep + 1 + 2), Color.White * f, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 4), SpriteEffects.None, 0.5f);
-                    }
-
+                    Game1.spriteBatch.DrawString(Game1.smallFont, xpt, new Vector2(startX + 1 + (198 / 2) - (xpt.Length * 4), startY + (barSep * i) + sep + 1 - yChange), Color.White * f * (transp + 0.05f), 0.0f, Vector2.Zero, (Game1.pixelZoom / 6f), SpriteEffects.None, 0.5f);
                 }
-
-                
 
 
             }
+
+
+
+
+
             //Game1.spriteBatch.Draw(Game1.mouseCursors, new Vector2(Game1.getMouseX(), Game1.getMouseY()), Game1.getSourceRectForStandardTileSheet(Game1.mouseCursors, Game1.options.SnappyMenus ? 44 : 0, 16, 16), Color.White * Game1.mouseCursorTransparency, 0.0f, Vector2.Zero, Game1.pixelZoom + Game1.dialogueButtonScale / 150f, SpriteEffects.None, 0.1f);
         }
 
@@ -252,7 +307,7 @@ namespace LevelExtender
         {
             int xp = 0;
 
-            if(lev > 0 && lev < 10)
+            if (lev > 0 && lev < 10)
             {
                 xp = defReqXPs[lev - 1];
             }
@@ -310,7 +365,7 @@ namespace LevelExtender
 
         public static bool WCDF(GameLocation location, int x, int y, int power, Farmer who)
         {
-            
+
             try
             {
                 Monitor.Log(who.Name);
@@ -347,12 +402,12 @@ namespace LevelExtender
                 staminaC = -1.0f;
                 tbuttondown = false;
             }*/
-                
+
         }
 
         private void GameEvents_FirstUpdateTick(object sender, EventArgs e)
         {
-            
+
         }
 
         List<DateTime> xpBarStartTime = new List<DateTime>();
@@ -370,7 +425,7 @@ namespace LevelExtender
                 aTimer.Enabled = true;
 
             }
-            else if (index==1)
+            else if (index == 1)
             {
                 // Create a timer with a two second interval.
                 aTimer2 = new System.Timers.Timer(time);
@@ -393,17 +448,17 @@ namespace LevelExtender
                 xpBarTimers[count].AutoReset = false;
                 xpBarTimers[count].Enabled = true;
 
-                xpBarStartTime.Add(DateTime.Now);
-                    
+                //xpBarStartTime.Add(DateTime.Now);
+
             }
 
 
 
         }
 
-        private void EndXPBar(object sender, ElapsedEventArgs e)
+        public void EndXPBar(object sender, ElapsedEventArgs e)
         {
-            xpBarTimers[0].Enabled = false;
+            /*xpBarTimers[0].Enabled = false;
             xpBarTimers.RemoveAt(0);
             pushElementsToZero(xpBarTimers);
 
@@ -413,8 +468,14 @@ namespace LevelExtender
             pushElementsToZero(skillsToDrawOrder);
 
             xpBarStartTime.RemoveAt(0);
-            pushElementsToZero(xpBarStartTime);
-            
+            pushElementsToZero(xpBarStartTime);*/
+
+            xpBars[0] = null;
+            xpBars.RemoveAt(0);
+            pushElementsToZero(xpBars);
+            yChange = 0;
+            startMove = false;
+
         }
 
         private void pushElementsToZero(List<int> list)
@@ -439,9 +500,9 @@ namespace LevelExtender
 
             list = temp;
         }
-        private void pushElementsToZero(List<DateTime> list)
+        private void pushElementsToZero(List<XPBar> list)
         {
-            List<DateTime> temp = new List<DateTime>();
+            List<XPBar> temp = new List<XPBar>();
 
             foreach (var item in list)
             {
@@ -459,13 +520,13 @@ namespace LevelExtender
 
         private void XPT(string arg1, string[] arg2)
         {
-            
+
             Monitor.Log("Skill:  | Level:  |  Current Experience:  | Experience Needed:", LogLevel.Info);
-            
+
             string[] skills = { "Farming", "Fishing", "Foraging", "Mining", "Combat" };
             int[] skillLevs = { Game1.player.farmingLevel.Value, Game1.player.fishingLevel.Value, Game1.player.foragingLevel.Value, Game1.player.miningLevel.Value, Game1.player.combatLevel.Value };
             for (int i = 0; i < 5; i++)
-            {                
+            {
                 double xpn = Math.Round((1000 * skillLevs[i] + (skillLevs[i] * skillLevs[i] * skillLevs[i] * 0.33)) * xp_mod);
                 Monitor.Log($"{skills[i]} | {skillLevs[i]} | {addedXP[i]} | {xpn}", LogLevel.Info);
                 //Monitor.Log($"     {i} | {Math.Round((1000 * i + (i * i * i * 0.33)) * xp_mod)}");
@@ -487,19 +548,41 @@ namespace LevelExtender
 
         private void OnXPChanged(object sender, EXPEventArgs e)
         {
-            if (e.xp < 0 || e.xp > 1000)
+            if (e.xp < 0 || e.xp > 10000)
                 return;
 
             Monitor.Log($"XP Changed: index {e.key}, EXP {e.xp}");
 
-            SetTimer(5000, 2);
+            bool exists = false;
 
+            for (int i = 0; i < xpBars.Count; i++)
+            {
+                if (xpBars[i].key == e.key)
+                {
+                    xpBars[i].timer.Stop();
+                    xpBars[i].timer.Start();
+                    xpBars[i].time = DateTime.Now;
+                    xpBars[i].xpc = e.xp;
+                    exists = true;
 
-            skillsToDraw[e.key] = e.xp;
+                    if(i == 0)
+                    {
+                        yChange = 0;
+                        startMove = false;
+                    }
+                }
+            }
 
-            if (!skillsToDrawOrder.Contains(e.key))
-                skillsToDrawOrder.Add(e.key);
-            
+            if (!exists)
+            {
+                xpBars.Add(new XPBar(e.key, e.xp, LE));
+            }
+
+            //skillsToDraw[e.key] = e.xp;
+
+            //if (!skillsToDrawOrder.Contains(e.key))
+            //skillsToDrawOrder.Add(e.key);
+
         }
 
 
@@ -573,7 +656,7 @@ namespace LevelExtender
             {
                 Game1.player.farmingLevel.Value = n;
                 Game1.player.experiencePoints[0] = GetDefStartXP(n);
-                
+
                 if (n < 10)
                 {
                     sLevs[0] = 10;
@@ -847,7 +930,7 @@ namespace LevelExtender
         {
             int exp = 0;
 
-            if(lev < 10)
+            if (lev < 10)
             {
                 exp = defReqXPs[lev];
             }
@@ -875,7 +958,7 @@ namespace LevelExtender
             {
                 exp = 15001;
             }
-            
+
 
             return exp;
         }
@@ -934,13 +1017,13 @@ namespace LevelExtender
             int[] temp = { Game1.player.farmingLevel.Value, Game1.player.fishingLevel.Value, Game1.player.foragingLevel.Value, Game1.player.miningLevel.Value, Game1.player.combatLevel.Value };
             if (Context.IsWorldReady) // save is loaded
             {
-                
+
 
                 for (int i = 0; i < temp.Length; i++)
                 {
-                    if(temp[i] < 10 && dxp[i] != Game1.player.experiencePoints[i])
+                    if (temp[i] < 10 && dxp[i] != Game1.player.experiencePoints[i])
                     {
-                        EXPEventArgs args = new EXPEventArgs { key = i, xp = (Game1.player.experiencePoints[i] - dxp[i])};
+                        EXPEventArgs args = new EXPEventArgs { key = i, xp = (Game1.player.experiencePoints[i] - dxp[i]) };
                         LEE.RaiseEvent(args);
                         dxp[i] = Game1.player.experiencePoints[i];
                     }
@@ -1058,7 +1141,7 @@ namespace LevelExtender
 
                 IList<NPC> characters = Game1.currentLocation.characters;
                 characters.Add((NPC)m);
-                
+
                 total_m++;
             }
 
@@ -1155,7 +1238,8 @@ namespace LevelExtender
 
                     int bobberBarSize;
 
-                    if (!(this.Helper.ModRegistry.IsLoaded("DevinLematty.ExtremeFishingOverhaul"))){
+                    if (!(this.Helper.ModRegistry.IsLoaded("DevinLematty.ExtremeFishingOverhaul")))
+                    {
                         if (Game1.player.FishingLevel < 11)
                             bobberBarSize = 80 + bobberBonus + (int)(Game1.player.FishingLevel * 9);
                         else
@@ -1204,7 +1288,7 @@ namespace LevelExtender
             {
                 SetTimer(1000, 1);
             }
-                no_mons = false;
+            no_mons = false;
         }
 
         public void Rem_mons()
@@ -1227,7 +1311,7 @@ namespace LevelExtender
                     if(ch.IsMonster)
                     location.characters.Remove(ch);
                 }*/
-                
+
 
                 x += (y - location.characters.Count);
 
@@ -1236,7 +1320,7 @@ namespace LevelExtender
             Monitor.Log($"Removed | {x} | / | {total_m} | monsters.");
 
             total_m = 0;
-            
+
         }
 
         private Monster GetMonster(int x, Vector2 loc)
@@ -1606,9 +1690,25 @@ namespace LevelExtender
 
     public class XPBar
     {
-        int key;
-        int xpc;
-        
+        public int key;
+        public int xpc;
+        public Timer timer;
+        public DateTime time;
+
+        public XPBar(int key, int xpc, ModEntry LE)
+        {
+            this.key = key;
+            this.xpc = xpc;
+
+            this.timer = new Timer(5000);
+            timer.Elapsed += LE.EndXPBar;
+
+            timer.AutoReset = false;
+            timer.Enabled = true;
+
+            time = DateTime.Now;
+        }
+
     }
 }
 
