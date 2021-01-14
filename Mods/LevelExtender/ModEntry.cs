@@ -160,6 +160,8 @@ namespace LevelExtender
 
         //int yChange = 0;
         //bool startMove = false;
+        bool shouldmove = false;
+        double smt = -1;
 
         private void Display_Rendered(object sender, RenderedEventArgs e)
         {
@@ -167,7 +169,8 @@ namespace LevelExtender
                 return;
 
 
-
+            shouldmove = false;
+            smt = -1;
 
             for (int i = 0; i < xpBars.Count; i++)
             {
@@ -203,7 +206,7 @@ namespace LevelExtender
                     double deltaTime = DateTime.Now.Subtract(xpBars[i].time).TotalMilliseconds;
                     float transp;
 
-                    if (i == 0)
+                    /*if (i == 0)
                     {
 
                         using (System.IO.StreamWriter file =
@@ -211,7 +214,7 @@ namespace LevelExtender
                         {
                             file.WriteLine($"{DateTime.Now} - {xpBars[i].time} = {deltaTime}");
                         }
-                    }
+                    }*/
 
                     if (deltaTime >= 0 && deltaTime <= 1000)
                     {
@@ -253,7 +256,7 @@ namespace LevelExtender
                     int bar1w = (int)Math.Round(curXP * mod) - bar2w;
 
 
-                    if (i == 0 && xpBars[i].startmove && deltaTime <= 50)
+                    /*if (i == 0 && xpBars[i].startmove && deltaTime <= 50)
                     {
                         xpBars[i].ych = 0;
                         xpBars[i].startmove = false;
@@ -264,8 +267,11 @@ namespace LevelExtender
                         xpBars[i].startmove = true;
                         Monitor.Log("startmove!");
                     }
-                    else if (i == 0 && deltaTime >= 4000)
+                    else if ( && deltaTime >= 4000)
                     {
+                        if (!shouldmove)
+                            shouldmove = true;
+
                         xpBars[i].ych = (int)Math.Round((deltaTime - 4000) / 15.625);
                         Monitor.Log($"yChange Value: {xpBars[i].ych} -> {deltaTime}");
                     }
@@ -275,7 +281,36 @@ namespace LevelExtender
                         xpBars[i].ych = 0;
                         xpBars[i].startmove = false;
                         Monitor.Log("endmove!");
+                    }*/
+
+
+                    if (deltaTime >= 4000)
+                    {
+                        if (xpBars[i].ych > 64)
+                            xpBars[i].ych = 0;
+
+                        if (!shouldmove)
+                        {
+                            shouldmove = true;
+                            smt = deltaTime;
+                        }
+                            
+
+                        
                     }
+
+                    if (shouldmove)
+                    {
+                        xpBars[i].ych = (int)Math.Round((smt - 4000) / 15.625);
+                        Monitor.Log($"yChange Value: {xpBars[i].ych} -> {deltaTime}");
+                    }
+
+                    /*if (deltaTime >= 4970)
+                    {
+                        xpBars[i].ych = 0;
+                        //xpBars[i].startmove = false;
+                        Monitor.Log("endmove!");
+                    }*/
 
                     Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX - 7, startY + (barSep * i) - 7 - xpBars[i].ych, 214, 64), Color.DarkRed * transp);
                     Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX - 5, startY + (barSep * i) - 5 - xpBars[i].ych, 210, 60), new Color(210, 173, 85) * transp);
