@@ -69,9 +69,6 @@ namespace LevelExtender
 
         int[] dxp = { 0, 0, 0, 0, 0 };
 
-        List<int> skillsToDraw = new List<int>();
-        List<int> skillsToDrawOrder = new List<int>();
-
         List<Timer> xpBarTimers = new List<Timer>();
 
         int skillCount = 5;
@@ -88,12 +85,6 @@ namespace LevelExtender
             s_mod = -1.0;
             mpload = false;
             mpMult = 1.0;
-
-            for (int i = 0; i < skillCount; i++)
-            {
-                skillsToDraw.Add(0);
-                //skillsToDrawOrder.Add(-1);
-            }
 
         }
 
@@ -167,114 +158,77 @@ namespace LevelExtender
 
         }
 
-        int yChange = 0;
-        bool startMove = false;
+        //int yChange = 0;
+        //bool startMove = false;
 
         private void Display_Rendered(object sender, RenderedEventArgs e)
         {
             if (!Context.IsWorldReady)
                 return;
 
+
+
+
             for (int i = 0; i < xpBars.Count; i++)
             {
 
-                string[] skills = { "F a r m i n g", "F i s h i n g", "F o r a g i n g", "M i n i n g", "C o m b a t" };
-                int[] skillLevs = { Game1.player.FarmingLevel, Game1.player.FishingLevel, Game1.player.ForagingLevel, Game1.player.MiningLevel, Game1.player.CombatLevel };
-                int startX = 8;
-                int startY = 8;
-                int sep = 30;
-                int barSep = 60;
-
-                /*for (int i = 0; i < skillsToDrawOrder.Count; i++)
+                try
                 {
-                    
-                    
-                    int key = skillsToDrawOrder[i];
-                    int xp = skillsToDraw[key];
+
+                    if (xpBars[i] == null)
+                        continue;
+
+                    string[] skills = { "F a r m i n g", "F i s h i n g", "F o r a g i n g", "M i n i n g", "C o m b a t" };
+                    int[] skillLevs = { Game1.player.FarmingLevel, Game1.player.FishingLevel, Game1.player.ForagingLevel, Game1.player.MiningLevel, Game1.player.CombatLevel };
+                    int startX = 8;
+                    int startY = 8;
+                    int sep = 30;
+                    int barSep = 60;
+
+                    /*for (int i = 0; i < skillsToDrawOrder.Count; i++)
+                    {
+
+
+                        int key = skillsToDrawOrder[i];
+                        int xp = skillsToDraw[key];
+                        int lev = skillLevs[key];
+                        int startXP = StartXP(lev);
+                        */
+
+
+                    int key = xpBars[i].key;
+                    int xp = xpBars[i].xpc;
                     int lev = skillLevs[key];
                     int startXP = StartXP(lev);
-                    */
+                    double deltaTime = DateTime.Now.Subtract(xpBars[i].time).TotalMilliseconds;
+                    float transp;
+
+                    if (i == 0)
+                    {
+
+                        using (System.IO.StreamWriter file =
+                        new System.IO.StreamWriter(@"C:\Users\lematd\Desktop\deltatime.txt", true))
+                        {
+                            file.WriteLine($"{DateTime.Now} - {xpBars[i].time} = {deltaTime}");
+                        }
+                    }
+
+                    if (deltaTime >= 0 && deltaTime <= 1000)
+                    {
+                        transp = ((float)deltaTime) / 1200.0f;
+                    }
+                    else if (deltaTime > 1000 && deltaTime <= 4000)
+                    {
+                        transp = 0.833f;
+                    }
+                    else
+                    {
+                        transp = ((float)(5000 - deltaTime)) / 1200.0f;
+                    }
 
 
-                int key = xpBars[i].key;
-                int xp = xpBars[i].xpc;
-                int lev = skillLevs[key];
-                int startXP = StartXP(lev);
-                double deltaTime = (DateTime.Now - xpBars[i].time).TotalMilliseconds;
-                float transp;
+                    int curXP;
 
-                if (deltaTime >= 0 && deltaTime <= 1000)
-                {
-                    transp = ((float)deltaTime) / 1200.0f;
-                }
-                else if (deltaTime > 1000 && deltaTime <= 4000)
-                {
-                    transp = 0.833f;
-                }
-                else
-                {
-                    transp = ((float)(5000 - deltaTime)) / 1200.0f;
-                }
-
-
-                int curXP;
-
-                if (lev < 10)
-                {
-                    curXP = Game1.player.experiencePoints[key];
-                }
-                else
-                {
-                    curXP = addedXP[key];
-                }
-
-                int maxXP = GetReqXP(lev);
-
-                if (startXP > 0)
-                {
-                    maxXP = maxXP - startXP;
-                    curXP = curXP - startXP;
-                    startXP = 0;
-                }
-
-                int iWidth = 198;
-                double mod = iWidth / (maxXP * 1.0);
-                int bar2w = (int)Math.Round(xp * mod) + 1;
-                int bar1w = (int)Math.Round(curXP * mod) - bar2w;
-
-                
-                if(i == 0 && startMove && deltaTime <= 50)
-                {
-                    yChange = 0;
-                    startMove = false;
-                }
-                else if(i == 0 && !startMove && (deltaTime > 3950 && deltaTime < 4000))
-                {
-                    //yChange = 0;
-                    startMove = true;
-                    //Monitor.Log("startmove!");
-                }
-                else if(i == 0 && deltaTime >= 4000)
-                {
-                    yChange = (int)Math.Round((deltaTime - 4000) / 15.625);
-                    //Monitor.Log($"yChange Value: {yChange}");
-                }
-
-                Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX - 7, startY + (barSep * i) - 7 - yChange, 214, 64), Color.DarkRed * transp);
-                Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX - 5, startY + (barSep * i) - 5 - yChange, 210, 60), new Color(210, 173, 85) * transp);
-                Game1.spriteBatch.DrawString(Game1.smallFont, $"{skills[key]}", new Vector2(startX + 35 - ((skills[key].Length - 13) * 3), startY + (barSep * i) - yChange), Color.Black * transp, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 3), SpriteEffects.None, 0.5f);
-                Game1.spriteBatch.DrawString(Game1.smallFont, $"{skills[key]}", new Vector2(startX + 35 + 1 - ((skills[key].Length - 13) * 3), startY + (barSep * i) + 1 - yChange), Color.Black * transp, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 3), SpriteEffects.None, 0.5f);
-
-                Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX, startY + (barSep * i) + sep - yChange, 200, 20), Color.Black * transp);
-                Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1, startY + (barSep * i) + sep + 1 - yChange, bar1w, 18), Color.SeaGreen * transp);
-                Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1 + bar1w, startY + (barSep * i) + sep + 1 - yChange, bar2w, 18), Color.Turquoise * transp);
-
-                Vector2 mPos = new Vector2(Game1.getMouseX(), Game1.getMouseY());
-                Vector2 bCenter = new Vector2(startX + (200 / 2), startY + (barSep * i) + sep + (20 / 2) - yChange);
-                float dist = Vector2.Distance(mPos, bCenter);
-
-                if (dist <= 250f)
-                {
                     if (lev < 10)
                     {
                         curXP = Game1.player.experiencePoints[key];
@@ -284,17 +238,91 @@ namespace LevelExtender
                         curXP = addedXP[key];
                     }
 
-                    maxXP = GetReqXP(lev);
+                    int maxXP = GetReqXP(lev);
 
-                    float f = Math.Min(25f / dist, 1.0f);
+                    if (startXP > 0)
+                    {
+                        maxXP = maxXP - startXP;
+                        curXP = curXP - startXP;
+                        startXP = 0;
+                    }
 
-                    string xpt = $"{curXP} / {maxXP}";
+                    int iWidth = 198;
+                    double mod = iWidth / (maxXP * 1.0);
+                    int bar2w = (int)Math.Round(xp * mod) + 1;
+                    int bar1w = (int)Math.Round(curXP * mod) - bar2w;
 
-                    Game1.spriteBatch.DrawString(Game1.smallFont, xpt, new Vector2(startX + 1 + (198 / 2) - (xpt.Length * 4), startY + (barSep * i) + sep + 1 - yChange), Color.White * f * (transp + 0.05f), 0.0f, Vector2.Zero, (Game1.pixelZoom / 6f), SpriteEffects.None, 0.5f);
+
+                    if (i == 0 && xpBars[i].startmove && deltaTime <= 50)
+                    {
+                        xpBars[i].ych = 0;
+                        xpBars[i].startmove = false;
+                    }
+                    else if (i == 0 && !xpBars[i].startmove && (deltaTime > 3950 && deltaTime < 4000))
+                    {
+                        xpBars[i].ych = 0;
+                        xpBars[i].startmove = true;
+                        Monitor.Log("startmove!");
+                    }
+                    else if (i == 0 && deltaTime >= 4000)
+                    {
+                        xpBars[i].ych = (int)Math.Round((deltaTime - 4000) / 15.625);
+                        Monitor.Log($"yChange Value: {xpBars[i].ych} -> {deltaTime}");
+                    }
+
+                    if (deltaTime >= 4970)
+                    {
+                        xpBars[i].ych = 0;
+                        xpBars[i].startmove = false;
+                        Monitor.Log("endmove!");
+                    }
+
+                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX - 7, startY + (barSep * i) - 7 - xpBars[i].ych, 214, 64), Color.DarkRed * transp);
+                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX - 5, startY + (barSep * i) - 5 - xpBars[i].ych, 210, 60), new Color(210, 173, 85) * transp);
+                    Game1.spriteBatch.DrawString(Game1.smallFont, $"{skills[key]}", new Vector2(startX + 35 - ((skills[key].Length - 13) * 3), startY + (barSep * i) - xpBars[i].ych), Color.Black * transp, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 3), SpriteEffects.None, 0.5f);
+                    Game1.spriteBatch.DrawString(Game1.smallFont, $"{skills[key]}", new Vector2(startX + 35 + 1 - ((skills[key].Length - 13) * 3), startY + (barSep * i) + 1 - xpBars[i].ych), Color.Black * transp, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 3), SpriteEffects.None, 0.5f);
+
+                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX, startY + (barSep * i) + sep - xpBars[i].ych, 200, 20), Color.Black * transp);
+                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1, startY + (barSep * i) + sep + 1 - xpBars[i].ych, bar1w, 18), Color.SeaGreen * transp);
+                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1 + bar1w, startY + (barSep * i) + sep + 1 - xpBars[i].ych, bar2w, 18), Color.Turquoise * transp);
+
+                    Vector2 mPos = new Vector2(Game1.getMouseX(), Game1.getMouseY());
+                    Vector2 bCenter = new Vector2(startX + (200 / 2), startY + (barSep * i) + sep + (20 / 2) - xpBars[i].ych);
+                    float dist = Vector2.Distance(mPos, bCenter);
+
+                    if (dist <= 250f)
+                    {
+                        if (lev < 10)
+                        {
+                            curXP = Game1.player.experiencePoints[key];
+                        }
+                        else
+                        {
+                            curXP = addedXP[key];
+                        }
+
+                        maxXP = GetReqXP(lev);
+
+                        float f = Math.Min(25f / dist, 1.0f);
+
+                        string xpt = $"{curXP} / {maxXP}";
+
+                        Game1.spriteBatch.DrawString(Game1.smallFont, xpt, new Vector2(startX + 1 + (198 / 2) - (xpt.Length * 4), startY + (barSep * i) + sep + 1 - xpBars[i].ych), Color.White * f * (transp + 0.05f), 0.0f, Vector2.Zero, (Game1.pixelZoom / 6f), SpriteEffects.None, 0.5f);
+                    }
+
                 }
 
+                catch (Exception ex)
+                {
+                    Monitor.Log($"Non-Serious draw violation: {ex.Message}");
+                    continue;
+                }
 
             }
+
+
+
+
 
 
 
@@ -441,12 +469,12 @@ namespace LevelExtender
                 //showXPBar = true;
                 int count = xpBarTimers.Count;
 
-                xpBarTimers.Add(new System.Timers.Timer(time));
+                //xpBarTimers.Add(new System.Timers.Timer(time));
                 // Hook up the Elapsed event for the timer. 
-                xpBarTimers[count].Elapsed += EndXPBar;
+                //xpBarTimers[count].Elapsed += EndXPBar;
 
-                xpBarTimers[count].AutoReset = false;
-                xpBarTimers[count].Enabled = true;
+                //xpBarTimers[count].AutoReset = false;
+                //xpBarTimers[count].Enabled = true;
 
                 //xpBarStartTime.Add(DateTime.Now);
 
@@ -456,25 +484,15 @@ namespace LevelExtender
 
         }
 
-        public void EndXPBar(object sender, ElapsedEventArgs e)
+        public void EndXPBar(int key)
         {
-            /*xpBarTimers[0].Enabled = false;
-            xpBarTimers.RemoveAt(0);
-            pushElementsToZero(xpBarTimers);
 
-            int key = skillsToDrawOrder[0];
-            skillsToDraw[key] = 0;
-            skillsToDrawOrder.RemoveAt(0);
-            pushElementsToZero(skillsToDrawOrder);
+            //xpBars[0] = null;
+            //xpBars.RemoveAt(0);
+            //pushElementsToZero(xpBars);
 
-            xpBarStartTime.RemoveAt(0);
-            pushElementsToZero(xpBarStartTime);*/
-
-            xpBars[0] = null;
-            xpBars.RemoveAt(0);
-            pushElementsToZero(xpBars);
-            yChange = 0;
-            startMove = false;
+            var item = xpBars.SingleOrDefault(x => x.key == key);
+            xpBars.Remove(item);
 
         }
 
@@ -565,10 +583,11 @@ namespace LevelExtender
                     xpBars[i].xpc = e.xp;
                     exists = true;
 
-                    if(i == 0)
+                    if (i == 0)
                     {
-                        yChange = 0;
-                        startMove = false;
+                        xpBars[i].ych = 0;
+                        xpBars[i].startmove = false;
+                        Monitor.Log("reset on xpchange");
                     }
                 }
             }
@@ -1695,18 +1714,23 @@ namespace LevelExtender
         public Timer timer;
         public DateTime time;
 
+        public int ych = 0;
+        public bool startmove = false;
+
+
         public XPBar(int key, int xpc, ModEntry LE)
         {
             this.key = key;
             this.xpc = xpc;
 
             this.timer = new Timer(5000);
-            timer.Elapsed += LE.EndXPBar;
+            timer.Elapsed += delegate { LE.EndXPBar(key); };
 
             timer.AutoReset = false;
             timer.Enabled = true;
 
             time = DateTime.Now;
+
         }
 
     }
