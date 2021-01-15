@@ -1225,7 +1225,7 @@ namespace LevelExtender
                 m.Speed += rand.Next((int)Math.Round((Game1.player.combatLevel.Value / 5.0)));
                 m.resilience.Set(m.resilience.Value + (Game1.player.combatLevel.Value / 10));
                 m.experienceGained.Value += ((10 + (Game1.player.combatLevel.Value * 2)) * tier);
-
+                
                 IList<NPC> characters = Game1.currentLocation.characters;
                 characters.Add((NPC)m);
 
@@ -1376,7 +1376,7 @@ namespace LevelExtender
         {
             //List<HoeDirt> list = new List<HoeDirt>();
             Farm farm = Game1.getFarm();
-            double gchance = Game1.player.FarmingLevel * 0.0002 * 100;
+            double gchance = Game1.player.FarmingLevel * 0.0002;
             double pchance = Game1.player.FarmingLevel * 0.001;
             foreach (Vector2 key in farm.terrainFeatures.Keys)
             {
@@ -1385,18 +1385,19 @@ namespace LevelExtender
                     tf.crop.growCompletely();
                     //tf.crop.minHarvest.Value = rand.Next(5, 100);
                     //Monitor.Log("LE: hit gchance!");
-                    tf.crop.tintColor.Value = Color.Lavender;
+                    //tf.crop.tintColor.Value = Color.Lavender;
                 }
                 else if (farm.terrainFeatures[key] is HoeDirt tf2 && tf2.crop != null && rand.NextDouble() < pchance)
                 {
+                    
                     tf2.crop.currentPhase.Value = Math.Min(tf2.crop.currentPhase.Value + 1, tf2.crop.phaseDays.Count - 1);
-                    tf2.crop.tintColor.Value = Color.DarkBlue;
+                    //tf2.crop.tintColor.Value = Color.DarkBlue;
                 }
-                if (farm.terrainFeatures[key] is HoeDirt tf3 && tf3.crop != null && tf3.crop.fullyGrown.Value)
+                /*if (farm.terrainFeatures[key] is HoeDirt tf3 && tf3.crop != null && tf3.crop.fullyGrown.Value)
                 {
                     tf3.crop.minHarvest.Value = 1 + rand.Next((int)(Game1.player.FarmingLevel * 0.1));
                     //tf3.crop.
-                }
+                }*/
             }
             //return Utility.GetRandom<HoeDirt>(list);
 
