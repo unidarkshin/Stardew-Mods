@@ -76,6 +76,8 @@ namespace LevelExtender
 
         List<XPBar> xpBars = new List<XPBar>();
 
+        string[] snames = { "Farming", "Fishing", "Foraging", "Mining", "Combat" };
+
         public ModEntry()
         {
             instance = this;
@@ -103,15 +105,16 @@ namespace LevelExtender
         /// <param name="asset">A helper which encapsulates metadata about an asset and enables changes to it.</param>
         public void Edit<T>(IAssetData asset)
         {
+
             IDictionary<int, string> data = asset.AsDictionary<int, string>().Data;
             foreach (var pair in data.ToArray())
             {
                 string[] fields = pair.Value.Split('/');
                 if (int.TryParse(fields[1], out int val))
                 {
-                    int x = (val - rand.Next(0, (int)(Game1.player.fishingLevel.Value / 4)));
-                    if (x < 1)
-                        x = rand.Next(1, val);
+                    int x = Math.Max(val - rand.Next(0, (int)(Game1.player.fishingLevel.Value / 4)), val/2);
+                    //if (x < 1)
+                    //    x = rand.Next(1, val);
                     fields[1] = x.ToString();
                     data[pair.Key] = string.Join("/", fields);
                 }
@@ -288,13 +291,13 @@ namespace LevelExtender
                         double ms = (DateTime.Now - otime).TotalMilliseconds;
                         double addv = (xpBars[i].ych + (ms / 15.625));
                         xpBars[i].ych = (addv >= 0 ? 0 : addv);
-                        Monitor.Log($"NEG yChange Value: {xpBars[i].ych} -> {deltaTime}");
+                        //Monitor.Log($"NEG yChange Value: {xpBars[i].ych} -> {deltaTime}");
                     }
                     else if (i == 0 && deltaTime >= 4000)
                     {
                         double addv = (deltaTime - 4000) / 15.625;
                         xpBars[i].ych = (addv >= 64 ? 64 : addv);
-                        Monitor.Log($"yChange Value: {xpBars[i].ych} -> {deltaTime}");
+                        //Monitor.Log($"yChange Value: {xpBars[i].ych} -> {deltaTime}");
                     }
                     
 
@@ -428,8 +431,7 @@ namespace LevelExtender
 
             try
             {
-                Monitor.Log(who.Name);
-
+                //Monitor.Log(who.Name);
 
 
                 return true; // don't run original logic
@@ -499,7 +501,7 @@ namespace LevelExtender
             else if (index == 2)
             {
                 //showXPBar = true;
-                int count = xpBarTimers.Count;
+                //int count = xpBarTimers.Count;
 
                 //xpBarTimers.Add(new System.Timers.Timer(time));
                 // Hook up the Elapsed event for the timer. 
@@ -580,12 +582,12 @@ namespace LevelExtender
 
             Monitor.Log("Skill:  | Level:  |  Current Experience:  | Experience Needed:", LogLevel.Info);
 
-            string[] skills = { "Farming", "Fishing", "Foraging", "Mining", "Combat" };
+            
             int[] skillLevs = { Game1.player.farmingLevel.Value, Game1.player.fishingLevel.Value, Game1.player.foragingLevel.Value, Game1.player.miningLevel.Value, Game1.player.combatLevel.Value };
             for (int i = 0; i < 5; i++)
             {
-                double xpn = Math.Round((1000 * skillLevs[i] + (skillLevs[i] * skillLevs[i] * skillLevs[i] * 0.33)) * xp_mod);
-                Monitor.Log($"{skills[i]} | {skillLevs[i]} | {addedXP[i]} | {xpn}", LogLevel.Info);
+                double xpn = GetReqXP(skillLevs[i]);
+                Monitor.Log($"{snames[i]} | {skillLevs[i]} | {addedXP[i]} | {xpn}", LogLevel.Info);
                 //Monitor.Log($"     {i} | {Math.Round((1000 * i + (i * i * i * 0.33)) * xp_mod)}");
             }
         }
@@ -605,7 +607,7 @@ namespace LevelExtender
 
         private void OnXPChanged(object sender, EXPEventArgs e)
         {
-            if (e.xp < 0 || e.xp > 10000)
+            if (e.xp < 0 || e.xp > 50000)
                 return;
 
             Monitor.Log($"XP Changed: index {e.key}, EXP {e.xp}");
@@ -685,7 +687,7 @@ namespace LevelExtender
             for (int i = 0; i < sLevs.Length; i++)
             {
                 if (temp[i] >= 10)
-                    Monitor.Log($"NL: {Math.Round((1000 * temp[i] + (temp[i] * temp[i] * temp[i] * 0.33)) * xp_mod)}");
+                    Monitor.Log($"NL: {GetReqXP(temp[i])}");
                 else
                     Monitor.Log($"XP: Empty.");
             }
@@ -711,7 +713,7 @@ namespace LevelExtender
             for (int i = 0; i < sLevs.Length; i++)
             {
                 if (temp[i] >= 10)
-                    Monitor.Log($"NL: {Math.Round((1000 * temp[i] + (temp[i] * temp[i] * temp[i] * 0.33)) * xp_mod)}");
+                    Monitor.Log($"NL: {GetReqXP()}");
                 else
                     Monitor.Log($"XP: Empty.");
             }
@@ -1019,7 +1021,7 @@ namespace LevelExtender
             }
             else
             {
-                exp = (int)Math.Round((1000 * lev + (lev * lev * lev * 0.33)) * xp_mod);
+                exp = (int)Math.Round((1000 * lev + (lev * lev * lev * 1.134)) * xp_mod);
             }
 
             return exp;
@@ -1097,10 +1099,11 @@ namespace LevelExtender
         }
         private void GameEvents_OneSecondTick(object sender, EventArgs e)
         {
-            int[] temp = { Game1.player.farmingLevel.Value, Game1.player.fishingLevel.Value, Game1.player.foragingLevel.Value, Game1.player.miningLevel.Value, Game1.player.combatLevel.Value };
-            if (Context.IsWorldReady) // save is loaded
-            {
 
+            if (!Context.IsWorldReady)
+                return;
+
+            int[] temp = { Game1.player.farmingLevel.Value, Game1.player.fishingLevel.Value, Game1.player.foragingLevel.Value, Game1.player.miningLevel.Value, Game1.player.combatLevel.Value };
 
                 for (int i = 0; i < temp.Length; i++)
                 {
@@ -1129,7 +1132,7 @@ namespace LevelExtender
                     }
                 }
 
-                for (int i = 0; i < temp.Length; i++)
+                /*for (int i = 0; i < temp.Length; i++)
                 {
                     if (temp[i] >= 10 && !old[i])
                     {
@@ -1147,11 +1150,11 @@ namespace LevelExtender
                         }
 
                     }
-                }
+                }*/
 
 
-            }
-            if (Context.IsWorldReady && pres_comp)
+            
+            if (pres_comp)
             {
 
                 for (int i = 0; i < temp.Length; i++)
@@ -1180,7 +1183,7 @@ namespace LevelExtender
 
             //bool isdark = this.Helper.Reflection.GetField<Netcode.NetBool>(Game1.player.currentLocation, "isLightingDark").GetValue();
 
-            if (Context.IsWorldReady && !no_mons && wm && Game1.player.currentLocation.IsOutdoors && Game1.activeClickableMenu == null && rand.NextDouble() <= S_R())
+            if (!no_mons && wm && Game1.player.currentLocation.IsOutdoors && Game1.activeClickableMenu == null && rand.NextDouble() <= S_R())
             {
 
                 //Monitor.Log($"Light level: {Game1.player.currentLocation}");
@@ -1227,6 +1230,9 @@ namespace LevelExtender
                 characters.Add((NPC)m);
 
                 total_m++;
+
+                if (tier == 5)
+                    Game1.chatBox.addMessage($"A boss has spawned in your current location!", Color.DarkRed);
             }
 
         }
@@ -1370,13 +1376,21 @@ namespace LevelExtender
         {
             //List<HoeDirt> list = new List<HoeDirt>();
             Farm farm = Game1.getFarm();
-            double gchance = Game1.player.FarmingLevel * 0.001;
+            double gchance = Game1.player.FarmingLevel * 0.0002;
+            double pchance = Game1.player.FarmingLevel * 0.001;
             foreach (Vector2 key in farm.terrainFeatures.Keys)
             {
                 if (farm.terrainFeatures[key] is HoeDirt terrainFeature && terrainFeature.crop != null && rand.NextDouble() < gchance)
-                    (farm.terrainFeatures[key] as HoeDirt).crop.growCompletely();
+                {
+                    terrainFeature.crop.growCompletely();
+                    terrainFeature.crop.minHarvest.Value = rand.Next(5, 100);
+                    Monitor.Log("hit gchance!");
+                }
+                else if (farm.terrainFeatures[key] is HoeDirt terrainFeature2 && terrainFeature2.crop != null && rand.NextDouble() < pchance)
+                    terrainFeature2.crop.currentPhase.Value = Math.Min(terrainFeature2.crop.currentPhase.Value + 1, terrainFeature2.crop.phaseDays.Count - 1);
             }
             //return Utility.GetRandom<HoeDirt>(list);
+
 
             if (!mpload && this.Helper.ModRegistry.IsLoaded("f1r3w477.Level_Extender"))
             {
@@ -1626,9 +1640,10 @@ namespace LevelExtender
             int[] temp = { Game1.player.farmingLevel.Value, Game1.player.fishingLevel.Value, Game1.player.foragingLevel.Value, Game1.player.miningLevel.Value, Game1.player.combatLevel.Value };
             Monitor.Log($"Adding XP: {xp * mpMult}");
             addedXP[i] += (int)(xp * mpMult);
-            if ((addedXP[i] >= Math.Round((1000 * temp[i] + (temp[i] * temp[i] * temp[i] * 0.33)) * xp_mod)) && sLevs[i] < max[i])
+            if (addedXP[i] >= GetReqXP(temp[i]) && sLevs[i] < max[i])
             {
-                addedXP[i] = 0;
+                int leftover = Math.Max(addedXP[i] - GetReqXP(temp[i]), 0);
+                addedXP[i] = leftover;
                 sLevs[i] += 1;
 
                 if (i == 0)
@@ -1652,7 +1667,8 @@ namespace LevelExtender
                     Game1.player.combatLevel.Value = sLevs[i];
                 }
 
-                Monitor.Log($"{Game1.player.Name} leveled {i}(index) to {sLevs[i]}!");
+                //Monitor.Log($"{Game1.player.Name} leveled {i}(index) to {sLevs[i]}!");
+                Game1.chatBox.addMessage($"You leveled up {snames[i]} to level {sLevs[i]}!", Color.ForestGreen);
             }
             else
             {
@@ -1676,7 +1692,7 @@ namespace LevelExtender
                 {
                     Game1.player.combatLevel.Value = sLevs[i];
                 }
-                //Monitor.Log($"{Game1.player.Name} retained {i}(index) at {sLevs[i]}.");
+                Monitor.Log($"You loaded {snames[i]} level {sLevs[i]}!");
             }
         }
 
@@ -1697,7 +1713,7 @@ namespace LevelExtender
 
             for (int i = 0; i < temp.Length; i++)
             {
-                xTemp[i] = (int)(Math.Round((1000 * temp[i] + (temp[i] * temp[i] * temp[i] * 0.33)) * xp_mod));
+                xTemp[i] = GetReqXP(temp[i]);
             }
 
             return xTemp;
