@@ -15,6 +15,7 @@ using System.Timers;
 using System.Linq;
 using Harmony;
 using Microsoft.Xna.Framework.Graphics;
+using StardewValley.TerrainFeatures;
 
 namespace LevelExtender
 {
@@ -160,8 +161,6 @@ namespace LevelExtender
 
         //int yChange = 0;
         //bool startMove = false;
-        bool shouldmove = false;
-        double smt = -1;
 
         DateTime otime;
 
@@ -171,9 +170,6 @@ namespace LevelExtender
                 return;
             if (otime == null)
                 otime = DateTime.Now;
-
-            shouldmove = false;
-            smt = -1;
 
             for (int i = 0; i < xpBars.Count; i++)
             {
@@ -315,8 +311,8 @@ namespace LevelExtender
 
                     Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX - 7, startY + (barSep * i) - 7 - xpBars[i].ychi, 214, 64), Color.DarkRed * transp);
                     Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX - 5, startY + (barSep * i) - 5 - xpBars[i].ychi, 210, 60), new Color(210, 173, 85) * transp);
-                    Game1.spriteBatch.DrawString(Game1.smallFont, $"{skills[key]}", new Vector2(startX + 35 - ((skills[key].Length - 13) * 3), startY + (barSep * i) - xpBars[i].ychi), Color.Black * transp, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 3), SpriteEffects.None, 0.5f);
-                    Game1.spriteBatch.DrawString(Game1.smallFont, $"{skills[key]}", new Vector2(startX + 35 + 1 - ((skills[key].Length - 13) * 3), startY + (barSep * i) + 1 - xpBars[i].ychi), Color.Black * transp, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 3), SpriteEffects.None, 0.5f);
+                    Game1.spriteBatch.DrawString(Game1.smallFont, $"{skills[key]}", new Vector2(startX + 35 - ((skills[key].Length - 13) * 4), startY + (barSep * i) - xpBars[i].ychi), Color.Black * transp, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 3), SpriteEffects.None, 0.5f);
+                    Game1.spriteBatch.DrawString(Game1.smallFont, $"{skills[key]}", new Vector2(startX + 35 + 1 - ((skills[key].Length - 13) * 4), startY + (barSep * i) + 1 - xpBars[i].ychi), Color.Black * transp, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 3), SpriteEffects.None, 0.5f);
 
                     Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX, startY + (barSep * i) + sep - xpBars[i].ychi, 200, 20), Color.Black * transp);
                     Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1, startY + (barSep * i) + sep + 1 - xpBars[i].ychi, bar1w, 18), Color.SeaGreen * transp);
@@ -1211,7 +1207,7 @@ namespace LevelExtender
                     //Item item = new StardewValley.Object(rand.Next(data.Count), 1);
 
                     m.objectsToDrop.Add(rand.Next(data.Count));
-
+                    m.displayName += ": LE BOSS";
                 }
                 else
                 {
@@ -1219,10 +1215,11 @@ namespace LevelExtender
                 }
 
                 m.DamageToFarmer = (int)(m.DamageToFarmer / 1.5) + (int)(Game1.player.combatLevel.Value / 3);
-                m.Health = (int)(m.Health / 1.5) + ((Game1.player.combatLevel.Value / 2) * (m.Health / 10));
+                //m.Health = (int)(m.Health / 1.5) + ((Game1.player.combatLevel.Value / 2) * (m.Health / 10));
+                m.Health = m.Health * (int)Math.Round(Game1.player.combatLevel.Value * 0.1 * (rand.NextDouble() + rand.NextDouble()));
                 m.focusedOnFarmers = true;
                 m.wildernessFarmMonster = true;
-                m.Speed += rand.Next(3 + Game1.player.combatLevel.Value);
+                m.Speed += rand.Next((int)Math.Round((Game1.player.combatLevel.Value / 5.0)));
                 m.resilience.Set(m.resilience.Value + (Game1.player.combatLevel.Value / 10));
                 m.ExperienceGained += ((10 + (Game1.player.combatLevel.Value * 2)) * tier);
 
@@ -1251,10 +1248,10 @@ namespace LevelExtender
 
             if (Game1.isDarkOut() || Game1.isRaining)
             {
-                return (0.010 + (Game1.player.combatLevel.Value * 0.0001)) * 2;
+                return (0.0075 + (Game1.player.combatLevel.Value * 0.0001)) * 1.5;
             }
 
-            return (0.010 + (Game1.player.combatLevel.Value * 0.0001));
+            return (0.0075 + (Game1.player.combatLevel.Value * 0.0001));
 
         }
         private void GameEvents_QuarterSecondTick(object sender, UpdateTickedEventArgs e)
@@ -1334,7 +1331,13 @@ namespace LevelExtender
                     }
                     else
                     {
-                        bobberBarSize = 80 + bobberBonus + (int)(Game1.player.FishingLevel * 1.6);
+                        //bobberBarSize = 80 + bobberBonus + (int)(Game1.player.FishingLevel * 1.6);
+                        if (Game1.player.FishingLevel < 11)
+                            bobberBarSize = 80 + bobberBonus + (int)(Game1.player.FishingLevel * 7);
+                        else if(Game1.player.FishingLevel > 10 && Game1.player.FishingLevel < 20)
+                            bobberBarSize = 150 + bobberBonus + (int)(Game1.player.FishingLevel);
+                        else
+                            bobberBarSize = 170 + bobberBonus + (int)(Game1.player.FishingLevel * 0.8 * (0.5 + (rand.NextDouble() / 2.0)));
                     }
 
 
@@ -1365,6 +1368,16 @@ namespace LevelExtender
         }
         private void TimeEvent_AfterDayStarted(object sender, EventArgs e)
         {
+            //List<HoeDirt> list = new List<HoeDirt>();
+            Farm farm = Game1.getFarm();
+            double gchance = Game1.player.FarmingLevel * 0.001;
+            foreach (Vector2 key in farm.terrainFeatures.Keys)
+            {
+                if (farm.terrainFeatures[key] is HoeDirt terrainFeature && terrainFeature.crop != null && rand.NextDouble() < gchance)
+                    (farm.terrainFeatures[key] as HoeDirt).crop.growCompletely();
+            }
+            //return Utility.GetRandom<HoeDirt>(list);
+
             if (!mpload && this.Helper.ModRegistry.IsLoaded("f1r3w477.Level_Extender"))
             {
                 mpmod = this.Helper.ModRegistry.GetApi<MPModApi>("f1r3w477.Level_Extender");
