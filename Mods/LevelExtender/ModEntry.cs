@@ -163,11 +163,14 @@ namespace LevelExtender
         bool shouldmove = false;
         double smt = -1;
 
+        DateTime otime;
+
         private void Display_Rendered(object sender, RenderedEventArgs e)
         {
             if (!Context.IsWorldReady)
                 return;
-
+            if (otime == null)
+                otime = DateTime.Now;
 
             shouldmove = false;
             smt = -1;
@@ -284,26 +287,24 @@ namespace LevelExtender
                     }*/
 
 
-                    if (deltaTime >= 4000)
+                    if (i == 0 && xpBars[i].ych < 0)
                     {
-                        if (xpBars[i].ych > 64)
-                            xpBars[i].ych = 0;
-
-                        if (!shouldmove)
-                        {
-                            shouldmove = true;
-                            smt = deltaTime;
-                        }
-                            
-
-                        
+                        double ms = (DateTime.Now - otime).TotalMilliseconds;
+                        double addv = (xpBars[i].ych + (ms / 15.625));
+                        xpBars[i].ych = (addv >= 0 ? 0 : addv);
+                        Monitor.Log($"NEG yChange Value: {xpBars[i].ych} -> {deltaTime}");
                     }
-
-                    if (shouldmove)
+                    else if (i == 0 && deltaTime >= 4000)
                     {
-                        xpBars[i].ych = (int)Math.Round((smt - 4000) / 15.625);
+                        double addv = (deltaTime - 4000) / 15.625;
+                        xpBars[i].ych = (addv >= 64 ? 64 : addv);
                         Monitor.Log($"yChange Value: {xpBars[i].ych} -> {deltaTime}");
                     }
+                    
+
+                    xpBars[i].ych = xpBars[0].ych;
+
+
 
                     /*if (deltaTime >= 4970)
                     {
@@ -312,17 +313,17 @@ namespace LevelExtender
                         Monitor.Log("endmove!");
                     }*/
 
-                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX - 7, startY + (barSep * i) - 7 - xpBars[i].ych, 214, 64), Color.DarkRed * transp);
-                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX - 5, startY + (barSep * i) - 5 - xpBars[i].ych, 210, 60), new Color(210, 173, 85) * transp);
-                    Game1.spriteBatch.DrawString(Game1.smallFont, $"{skills[key]}", new Vector2(startX + 35 - ((skills[key].Length - 13) * 3), startY + (barSep * i) - xpBars[i].ych), Color.Black * transp, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 3), SpriteEffects.None, 0.5f);
-                    Game1.spriteBatch.DrawString(Game1.smallFont, $"{skills[key]}", new Vector2(startX + 35 + 1 - ((skills[key].Length - 13) * 3), startY + (barSep * i) + 1 - xpBars[i].ych), Color.Black * transp, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 3), SpriteEffects.None, 0.5f);
+                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX - 7, startY + (barSep * i) - 7 - xpBars[i].ychi, 214, 64), Color.DarkRed * transp);
+                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX - 5, startY + (barSep * i) - 5 - xpBars[i].ychi, 210, 60), new Color(210, 173, 85) * transp);
+                    Game1.spriteBatch.DrawString(Game1.smallFont, $"{skills[key]}", new Vector2(startX + 35 - ((skills[key].Length - 13) * 3), startY + (barSep * i) - xpBars[i].ychi), Color.Black * transp, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 3), SpriteEffects.None, 0.5f);
+                    Game1.spriteBatch.DrawString(Game1.smallFont, $"{skills[key]}", new Vector2(startX + 35 + 1 - ((skills[key].Length - 13) * 3), startY + (barSep * i) + 1 - xpBars[i].ychi), Color.Black * transp, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 3), SpriteEffects.None, 0.5f);
 
-                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX, startY + (barSep * i) + sep - xpBars[i].ych, 200, 20), Color.Black * transp);
-                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1, startY + (barSep * i) + sep + 1 - xpBars[i].ych, bar1w, 18), Color.SeaGreen * transp);
-                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1 + bar1w, startY + (barSep * i) + sep + 1 - xpBars[i].ych, bar2w, 18), Color.Turquoise * transp);
+                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX, startY + (barSep * i) + sep - xpBars[i].ychi, 200, 20), Color.Black * transp);
+                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1, startY + (barSep * i) + sep + 1 - xpBars[i].ychi, bar1w, 18), Color.SeaGreen * transp);
+                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1 + bar1w, startY + (barSep * i) + sep + 1 - xpBars[i].ychi, bar2w, 18), Color.Turquoise * transp);
 
                     Vector2 mPos = new Vector2(Game1.getMouseX(), Game1.getMouseY());
-                    Vector2 bCenter = new Vector2(startX + (200 / 2), startY + (barSep * i) + sep + (20 / 2) - xpBars[i].ych);
+                    Vector2 bCenter = new Vector2(startX + (200 / 2), startY + (barSep * i) + sep + (20 / 2) - xpBars[i].ychi);
                     float dist = Vector2.Distance(mPos, bCenter);
 
                     if (dist <= 250f)
@@ -342,7 +343,7 @@ namespace LevelExtender
 
                         string xpt = $"{curXP} / {maxXP}";
 
-                        Game1.spriteBatch.DrawString(Game1.smallFont, xpt, new Vector2(startX + 1 + (198 / 2) - (xpt.Length * 4), startY + (barSep * i) + sep + 1 - xpBars[i].ych), Color.White * f * (transp + 0.05f), 0.0f, Vector2.Zero, (Game1.pixelZoom / 6f), SpriteEffects.None, 0.5f);
+                        Game1.spriteBatch.DrawString(Game1.smallFont, xpt, new Vector2(startX + 1 + (198 / 2) - (xpt.Length * 4), startY + (barSep * i) + sep + 1 - xpBars[i].ychi), Color.White * f * (transp + 0.05f), 0.0f, Vector2.Zero, (Game1.pixelZoom / 6f), SpriteEffects.None, 0.5f);
                     }
 
                 }
@@ -357,7 +358,7 @@ namespace LevelExtender
 
 
 
-
+            otime = DateTime.Now;
 
 
 
@@ -527,7 +528,14 @@ namespace LevelExtender
             //pushElementsToZero(xpBars);
 
             var item = xpBars.SingleOrDefault(x => x.key == key);
+            double yval = item.ych;
+
             xpBars.Remove(item);
+
+            pushElementsToZero(xpBars);
+
+            xpBars[0].ych = 0;
+            //setYchVals(yval * -1);
 
         }
 
@@ -624,8 +632,18 @@ namespace LevelExtender
                         xpBars[i].movedir = -1;
                         Monitor.Log("reset on xpchange");
                     }*/
+                    double val = xpBars[i].ych * -1;
 
-                    sortByTime();           
+                    //Monitor.Log($"xpchanged, val: {val}");
+
+                    setYchVals(val);
+
+
+                    sortByTime();
+
+                    break;
+                    
+                    
                 }
             }
 
@@ -646,6 +664,13 @@ namespace LevelExtender
             List<XPBar> SortedList = xpBars.OrderBy(o => o.time).ToList();
 
             xpBars = SortedList;
+        }
+        public void setYchVals(double val)
+        {
+            foreach  (var bar in xpBars)
+            {
+                bar.ych = val;
+            }
         }
 
         private void TellXP(string command, string[] args)
@@ -1757,7 +1782,7 @@ namespace LevelExtender
         public Timer timer;
         public DateTime time;
 
-        public int ych = 0;
+        public double ych = 0;
         public bool startmove = false;
         public int movedir = 0;
 
@@ -1775,6 +1800,12 @@ namespace LevelExtender
 
             time = DateTime.Now;
 
+        }
+
+        public int ychi
+        {
+            get => (int)Math.Round(ych);
+            set { ychi = value; }
         }
 
     }
