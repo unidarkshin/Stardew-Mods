@@ -618,12 +618,14 @@ namespace LevelExtender
                     xpBars[i].xpc = e.xp;
                     exists = true;
 
-                    if (i == 0)
+                    /*if (i == 0)
                     {
-                        xpBars[i].ych = 0;
-                        xpBars[i].startmove = false;
+                        //xpBars[i].ych = -1 * xpBars[i].ych;
+                        xpBars[i].movedir = -1;
                         Monitor.Log("reset on xpchange");
-                    }
+                    }*/
+
+                    sortByTime();           
                 }
             }
 
@@ -639,6 +641,12 @@ namespace LevelExtender
 
         }
 
+        public void sortByTime()
+        {
+            List<XPBar> SortedList = xpBars.OrderBy(o => o.time).ToList();
+
+            xpBars = SortedList;
+        }
 
         private void TellXP(string command, string[] args)
         {
@@ -1751,6 +1759,7 @@ namespace LevelExtender
 
         public int ych = 0;
         public bool startmove = false;
+        public int movedir = 0;
 
 
         public XPBar(int key, int xpc, ModEntry LE)
