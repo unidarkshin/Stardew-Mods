@@ -16,6 +16,8 @@ using System.Linq;
 using Harmony;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley.TerrainFeatures;
+using StardewValley.Tools;
+using Netcode;
 
 namespace LevelExtender
 {
@@ -78,6 +80,10 @@ namespace LevelExtender
 
         string[] snames = { "Farming", "Fishing", "Foraging", "Mining", "Combat" };
 
+        HarmonyInstance harmony;
+
+        public static List<Monster> monsters = new List<Monster>();
+
         public ModEntry()
         {
             instance = this;
@@ -126,10 +132,16 @@ namespace LevelExtender
         {
             Initialize(instance.Monitor);
 
-            /*var harmony = HarmonyInstance.Create(this.ModManifest.UniqueID);
+            harmony = HarmonyInstance.Create(this.ModManifest.UniqueID);
+            Type[] types1 = { typeof(Microsoft.Xna.Framework.Rectangle), typeof(int), typeof(int), typeof(bool), typeof(float), typeof(int), typeof(float), typeof(float), typeof(bool), typeof(Farmer) };
             harmony.Patch(
-                    original: AccessTools.Method(typeof(StardewValley.Tools.Axe), "DoFunction"), //nameof(this.Helper.Reflection.GetMethod(typeof(StardewValley.Tools.FishingRod), "doPullFishFromWater"))),
-                    prefix: new HarmonyMethod(typeof(ModEntry), nameof(this.WCDF))
+                    original: AccessTools.Method(typeof(StardewValley.GameLocation), "damageMonster", types1), //nameof(this.Helper.Reflection.GetMethod(typeof(StardewValley.Tools.FishingRod), "doPullFishFromWater"))),
+                    prefix: new HarmonyMethod(typeof(ModEntry), nameof(this.DM))
+                );
+
+            /*harmony.Patch(
+                    original: AccessTools.Method(typeof(StardewValley.Monsters.Monster), "takeDamage"), //nameof(this.Helper.Reflection.GetMethod(typeof(StardewValley.Tools.FishingRod), "doPullFishFromWater"))),
+                    postfix: new HarmonyMethod(typeof(ModEntry), nameof(this.TD))
                 );*/
 
             //instance = this;
@@ -162,9 +174,119 @@ namespace LevelExtender
 
         }
 
+        public static void TD()
+        {
+            
+        }
+
+        public static bool DM(
+      Microsoft.Xna.Framework.Rectangle areaOfEffect,
+      int minDamage,
+      int maxDamage,
+      bool isBomb,
+      float knockBackModifier,
+      int addedPrecision,
+      float critChance,
+      float critMultiplier,
+      bool triggerMonsterInvincibleTimer,
+      Farmer who)
+        {
+            try
+            {
+                GameLocation cl = Game1.currentLocation;
+                if (!cl.IsOutdoors)
+                    return true;
+
+                int dmg = 0;
+                
+                bool flag1 = false;
+
+                for (int index = cl.characters.Count - 1; index >= 0; --index)
+                {
+                    if (index < cl.characters.Count && cl.characters[index] is Monster character && (character.IsMonster && character.Health > 0) && character.TakesDamageFromHitbox(areaOfEffect))
+                    {
+                        if (!monsters.Contains(character))
+                            continue;
+
+                        if (character.currentLocation == null)
+                            character.currentLocation = cl;
+                        if (!character.IsInvisible && !character.isInvincible() && (isBomb || instance.Helper.Reflection.GetMethod(Game1.currentLocation, "isMonsterDamageApplicable").Invoke<bool>(who, character, true) || instance.Helper.Reflection.GetMethod(Game1.currentLocation, "isMonsterDamageApplicable").Invoke<bool>(who, character, false)))
+                        {
+                            bool flag2 = !isBomb && who != null && (who.CurrentTool != null && who.CurrentTool is MeleeWeapon) && (int)(NetFieldBase<int, NetInt>)(who.CurrentTool as MeleeWeapon).type == 1;
+                            bool flag3 = false;
+                            if (flag2 && MeleeWeapon.daggerHitsLeft > 1)
+                                flag3 = true;
+                            if (flag3)
+                                triggerMonsterInvincibleTimer = false;
+                            flag1 = true;
+                            //if (Game1.currentLocation == this)
+                                //Rumble.rumble(0.1f + (float)(Game1.random.NextDouble() / 8.0), (float)(200 + Game1.random.Next(-50, 50)));
+                            Microsoft.Xna.Framework.Rectangle boundingBox = character.GetBoundingBox();
+                            Vector2 trajectory = Utility.getAwayFromPlayerTrajectory(boundingBox, who);
+                            if ((double)knockBackModifier > 0.0)
+                                trajectory *= knockBackModifier;
+                            else
+                                trajectory = new Vector2(character.xVelocity, character.yVelocity);
+                            if (character.Slipperiness == -1)
+                                trajectory = Vector2.Zero;
+                            bool flag4 = false;
+                            if (who != null && who.CurrentTool != null && character.hitWithTool(who.CurrentTool))
+                                return true;
+                            if (who.professions.Contains(25))
+                                critChance += critChance * 0.5f;
+                            int amount1;
+                            if (maxDamage >= 0)
+                            {
+                                int num = Game1.random.Next(minDamage, maxDamage + 1);
+                                if (who != null && Game1.random.NextDouble() < (double)critChance + (double)who.LuckLevel * ((double)critChance / 40.0))
+                                {
+                                    flag4 = true;
+                                    //this.playSound("crit");
+                                }
+                                int amount2 = Math.Max(1, (flag4 ? (int)((double)num * (double)critMultiplier) : num) + (who != null ? who.attack * 3 : 0));
+                                if (who != null && who.professions.Contains(24))
+                                    amount2 = (int)Math.Ceiling((double)amount2 * 1.10000002384186);
+                                if (who != null && who.professions.Contains(26))
+                                    amount2 = (int)Math.Ceiling((double)amount2 * 1.14999997615814);
+                                if (who != null & flag4 && who.professions.Contains(29))
+                                    amount2 = (int)((double)amount2 * 2.0);
+                                if (who != null)
+                                {
+                                    foreach (BaseEnchantment enchantment in who.enchantments)
+                                        enchantment.OnCalculateDamage(character, character.currentLocation, who, ref amount2);
+                                }
+                                //amount1 = character.takeDamage(amount2, (int)trajectory.X, (int)trajectory.Y, isBomb, (double)addedPrecision / 10.0, who);
+                                dmg = Math.Max(1, amount2 - (int)(NetFieldBase<int, NetInt>)character.resilience);
+                                //this.seenPlayer.Value = true;
+                                if (Game1.random.NextDouble() < (double)(NetFieldBase<double, NetDouble>)character.missChance - (double)(NetFieldBase<double, NetDouble>)character.missChance * addedPrecision)
+                                {
+                                    //num = -1;
+                                    return true;
+                                }
+                            }
+                            if (character.Health - dmg <= 0)
+                            {
+                                
+                                    who.gainExperience(4, character.ExperienceGained);
+                                
+                            }
+                            
+                        }
+                    }
+                } 
+
+                return true; // don't run original logic
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"Failed in {nameof(DM)}:\n{ex}", LogLevel.Error);
+                return true; // run original logic
+            }
+        }
+
         //int yChange = 0;
         //bool startMove = false;
-
+        
         DateTime otime;
 
         private void Display_Rendered(object sender, RenderedEventArgs e)
@@ -1097,11 +1219,23 @@ namespace LevelExtender
                 tbuttondown = true;
             }*/
         }
-        private void GameEvents_OneSecondTick(object sender, EventArgs e)
+        private void GameEvents_OneSecondTick(object sender, OneSecondUpdateTickedEventArgs e)
         {
 
             if (!Context.IsWorldReady)
                 return;
+
+            if (e.IsMultipleOf(3600))
+            {
+                foreach (Monster mon in monsters)
+                {
+                    if (mon == null || mon.Health <= 0 || mon.currentLocation == null)
+                    {
+                        monsters.Remove(mon);
+                    }
+                }
+            }
+
 
             int[] temp = { Game1.player.farmingLevel.Value, Game1.player.fishingLevel.Value, Game1.player.foragingLevel.Value, Game1.player.miningLevel.Value, Game1.player.combatLevel.Value };
 
@@ -1205,6 +1339,7 @@ namespace LevelExtender
                     m.Slipperiness += rand.Next(10) + 5;
                     m.coinsToDrop.Value = rand.Next(10) * 50;
                     m.startGlowing(new Color(rand.Next(0, 255), rand.Next(0, 255), rand.Next(0, 255)), true, 1.0f);
+                    m.Health *= rand.Next(Game1.player.CombatLevel / 2, Game1.player.CombatLevel);
 
                     var data = Game1.content.Load<Dictionary<int, string>>("Data\\ObjectInformation");
                     //Item item = new StardewValley.Object(rand.Next(data.Count), 1);
@@ -1219,12 +1354,13 @@ namespace LevelExtender
 
                 m.DamageToFarmer = (int)(m.DamageToFarmer / 1.5) + (int)(Game1.player.combatLevel.Value / 3);
                 //m.Health = (int)(m.Health / 1.5) + ((Game1.player.combatLevel.Value / 2) * (m.Health / 10));
-                m.Health = m.Health * (int)Math.Round(Game1.player.combatLevel.Value * 0.1 * (rand.NextDouble() + rand.NextDouble()));
+                //m.Health = m.Health * (int)Math.Round(Game1.player.combatLevel.Value * 0.1 * (rand.NextDouble() + rand.NextDouble()));
+                m.Health *= 1 + (Game1.player.CombatLevel / 5);
                 m.focusedOnFarmers = true;
                 m.wildernessFarmMonster = true;
                 m.Speed += rand.Next((int)Math.Round((Game1.player.combatLevel.Value / 5.0)));
                 m.resilience.Set(m.resilience.Value + (Game1.player.combatLevel.Value / 10));
-                m.experienceGained.Value += ((10 + (Game1.player.combatLevel.Value * 2)) * tier);
+                m.experienceGained.Value += (int)(m.Health/100.0) + ((10 + (Game1.player.combatLevel.Value * 2)) * tier);
                 
                 IList<NPC> characters = Game1.currentLocation.characters;
                 characters.Add((NPC)m);
@@ -1233,6 +1369,8 @@ namespace LevelExtender
 
                 if (tier == 5)
                     Game1.chatBox.addMessage($"A boss has spawned in your current location!", Color.DarkRed);
+
+                monsters.Add(m);
             }
 
         }
@@ -1372,8 +1510,10 @@ namespace LevelExtender
             }
 
         }
+
         private void TimeEvent_AfterDayStarted(object sender, EventArgs e)
         {
+
             //List<HoeDirt> list = new List<HoeDirt>();
             Farm farm = Game1.getFarm();
             double gchance = Game1.player.FarmingLevel * 0.0002;
