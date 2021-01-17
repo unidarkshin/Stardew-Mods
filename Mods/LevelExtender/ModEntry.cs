@@ -732,7 +732,7 @@ namespace LevelExtender
             if (e.xp < 0 || e.xp > 50000)
                 return;
 
-            Monitor.Log($"XP Changed: index {e.key}, EXP {e.xp}");
+            //Monitor.Log($"XP Changed: index {e.key}, EXP {e.xp}");
 
             bool exists = false;
 
@@ -853,7 +853,7 @@ namespace LevelExtender
                 return;
             }
             n = int.Parse(args[1]);
-            if (n < 1 || n > 100)
+            if (n < 0 || n > 100)
             {
                 Monitor.Log($"Function Failed!");
                 return;
@@ -982,12 +982,12 @@ namespace LevelExtender
             if (!wm)
             {
                 wm = true;
-                Monitor.Log($"Monsters -> ON.");
+                Monitor.Log($"Overworld Monster Spawning -> ON.");
             }
             else
             {
                 wm = false;
-                Monitor.Log($"Monsters -> OFF.");
+                Monitor.Log($"Overworld Monster Spawning -> OFF.");
             }
         }
         private void XpM(string command, string[] args)
@@ -1666,7 +1666,7 @@ namespace LevelExtender
             sLevs[4] = config_t.CLV;
             wm = config_t.WorldMonsters;
             xp_mod = config_t.Xp_modifier;
-
+            
             config = config_t;
 
             if (Game1.player.farmingLevel.Value >= 10)
