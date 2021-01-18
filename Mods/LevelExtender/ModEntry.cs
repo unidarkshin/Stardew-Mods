@@ -84,6 +84,8 @@ namespace LevelExtender
 
         public static List<Monster> monsters = new List<Monster>();
 
+        List<Debris> tempDebris = new List<Debris>();
+
         public ModEntry()
         {
             instance = this;
@@ -138,6 +140,14 @@ namespace LevelExtender
                     original: AccessTools.Method(typeof(StardewValley.GameLocation), "damageMonster", types1), //nameof(this.Helper.Reflection.GetMethod(typeof(StardewValley.Tools.FishingRod), "doPullFishFromWater"))),
                     prefix: new HarmonyMethod(typeof(ModEntry), nameof(this.DM))
                 );
+            /*harmony.Patch(
+                    original: AccessTools.Method(typeof(StardewValley.Menus.ItemGrabMenu), "dropHeldItem"), //nameof(this.Helper.Reflection.GetMethod(typeof(StardewValley.Tools.FishingRod), "doPullFishFromWater"))),
+                    prefix: new HarmonyMethod(typeof(ModEntry), nameof(this.DHI))
+                );
+            harmony.Patch(
+                    original: AccessTools.Method(typeof(StardewValley.Menus.ItemGrabMenu), "dropRemainingItems"), //nameof(this.Helper.Reflection.GetMethod(typeof(StardewValley.Tools.FishingRod), "doPullFishFromWater"))),
+                    prefix: new HarmonyMethod(typeof(ModEntry), nameof(this.DHI))
+                );*/
 
             /*harmony.Patch(
                     original: AccessTools.Method(typeof(StardewValley.Monsters.Monster), "takeDamage"), //nameof(this.Helper.Reflection.GetMethod(typeof(StardewValley.Tools.FishingRod), "doPullFishFromWater"))),
@@ -156,6 +166,7 @@ namespace LevelExtender
             helper.Events.GameLoop.DayStarted += this.TimeEvent_AfterDayStarted;
             helper.Events.Input.ButtonReleased += this.ControlEvent_KeyReleased;
             helper.Events.Display.Rendered += this.Display_Rendered;
+            helper.Events.Player.Warped += this.Player_Warped;
 
             //LEE.OnXPChanged += LEE;
 
@@ -172,6 +183,37 @@ namespace LevelExtender
             LEE.OnXPChanged += this.OnXPChanged;
 
 
+        }
+
+        private void Player_Warped(object sender, WarpedEventArgs e)
+        {
+            tempDebris = new List<Debris>(e.NewLocation.debris.ToList());
+        }
+
+        public static Timer noDuplicate = new Timer();
+
+        public static bool DHI()
+        {
+            try
+            {
+                noDuplicate = new Timer(1000);
+                noDuplicate.Elapsed += noDupEnd;
+
+                noDuplicate.AutoReset = false;
+                noDuplicate.Enabled = true;
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"Failed in {nameof(DHI)}:\n{ex}", LogLevel.Error);
+                return true;
+            }
+        }
+
+        private static void noDupEnd(object sender, ElapsedEventArgs e)
+        {
+            noDuplicate.Enabled = false;
         }
 
         public static void TD()
@@ -510,35 +552,35 @@ namespace LevelExtender
             if (arg[0].ToLower() == "farming")
             {
                 if (skillLevs[0] < 10)
-                    Game1.player.experiencePoints[0] = xp;
+                    Game1.player.experiencePoints[0] = Math.Min(xp, GetReqXP(skillLevs[0]) - 2);
                 else
                     addedXP[0] = xp;
             }
             else if (arg[0].ToLower() == "fishing")
             {
                 if (skillLevs[1] < 10)
-                    Game1.player.experiencePoints[1] = xp;
+                    Game1.player.experiencePoints[1] = Math.Min(xp, GetReqXP(skillLevs[1]) - 2);
                 else
                     addedXP[1] = xp;
             }
             else if (arg[0].ToLower() == "foraging")
             {
                 if (skillLevs[2] < 10)
-                    Game1.player.experiencePoints[2] = xp;
+                    Game1.player.experiencePoints[2] = Math.Min(xp, GetReqXP(skillLevs[2]) - 2);
                 else
                     addedXP[2] = xp;
             }
             else if (arg[0].ToLower() == "mining")
             {
                 if (skillLevs[3] < 10)
-                    Game1.player.experiencePoints[3] = xp;
+                    Game1.player.experiencePoints[3] = Math.Min(xp, GetReqXP(skillLevs[3]) - 2);
                 else
                     addedXP[3] = xp;
             }
             else if (arg[0].ToLower() == "combat")
             {
                 if (skillLevs[4] < 10)
-                    Game1.player.experiencePoints[4] = xp;
+                    Game1.player.experiencePoints[4] = Math.Min(xp, GetReqXP(skillLevs[4]) - 2);
                 else
                     addedXP[4] = xp;
             }
@@ -622,22 +664,21 @@ namespace LevelExtender
             }
             else if (index == 2)
             {
-                //showXPBar = true;
-                //int count = xpBarTimers.Count;
-
-                //xpBarTimers.Add(new System.Timers.Timer(time));
+                shouldDraw = new System.Timers.Timer(time);
                 // Hook up the Elapsed event for the timer. 
-                //xpBarTimers[count].Elapsed += EndXPBar;
+                shouldDraw.Elapsed += sDrawEnd;
 
-                //xpBarTimers[count].AutoReset = false;
-                //xpBarTimers[count].Enabled = true;
-
-                //xpBarStartTime.Add(DateTime.Now);
-
+                shouldDraw.AutoReset = false;
+                shouldDraw.Enabled = true;
             }
 
 
 
+        }
+
+        private void sDrawEnd(object sender, ElapsedEventArgs e)
+        {
+            shouldDraw.Enabled = false;
         }
 
         public void EndXPBar(int key)
@@ -729,13 +770,13 @@ namespace LevelExtender
 
         private void OnXPChanged(object sender, EXPEventArgs e)
         {
-            if (e.xp < 0 || e.xp > 50000)
+            if (e.xp < 0 || e.xp > 100001 || shouldDraw.Enabled)
                 return;
 
             //Monitor.Log($"XP Changed: index {e.key}, EXP {e.xp}");
 
             bool exists = false;
-
+            
             for (int i = 0; i < xpBars.Count; i++)
             {
                 if (xpBars[i].key == e.key)
@@ -1224,15 +1265,23 @@ namespace LevelExtender
 
             if (!Context.IsWorldReady)
                 return;
+           
 
             if (e.IsMultipleOf(3600))
             {
+                List<int> tmons = new List<int>();
+
                 foreach (Monster mon in monsters)
                 {
                     if (mon == null || mon.Health <= 0 || mon.currentLocation == null)
                     {
-                        monsters.Remove(mon);
+                        //monsters.Remove(mon);
+                        tmons.Add(monsters.IndexOf(mon));
                     }
+                }
+                foreach (int i in tmons)
+                {
+                    monsters.RemoveAt(i);
                 }
             }
 
@@ -1392,10 +1441,10 @@ namespace LevelExtender
 
             if (Game1.isDarkOut() || Game1.isRaining)
             {
-                return (0.0075 + (Game1.player.combatLevel.Value * 0.0001)) * 1.5;
+                return (0.01 + (Game1.player.combatLevel.Value * 0.0001)) * 1.5;
             }
 
-            return (0.0075 + (Game1.player.combatLevel.Value * 0.0001));
+            return (0.01 + (Game1.player.combatLevel.Value * 0.0001));
 
         }
         private void GameEvents_QuarterSecondTick(object sender, UpdateTickedEventArgs e)
@@ -1506,6 +1555,42 @@ namespace LevelExtender
                         this.Helper.Reflection.GetField<float>(Game1.activeClickableMenu, "distanceFromCatching").SetValue(dist + ((float)(Game1.player.FishingLevel - 10) / 22000.0f));
 
                     }
+                }
+            }
+
+            if (e.IsMultipleOf(15))
+            { 
+                //if (Game1.currentLocation.debris.Count > 0)
+                //Monitor.Log($"Current debs 0: {Game1.currentLocation.debris[0].item.DisplayName}");
+                if (tempDebris.Count != Game1.currentLocation.debris.Count)
+                {
+                    GameLocation cl = Game1.currentLocation;
+                    int diff = cl.debris.Count - tempDebris.Count;
+
+                    //Monitor.Log($"LE debris diff: {diff}, gameloc debris count {cl.debris.Count}");
+
+                    if (diff > 0)
+                    {
+                        for (int i = cl.debris.Count - diff; i < cl.debris.Count; i++)
+                        {
+                            Item item = cl.debris[i].item;
+                            if (item == null)
+                                continue;
+
+                            int cat = item.Category;
+
+                            if (true)
+                            {
+                                //if (cat == -2 || cat == -12 || cat == -15)
+                                //{
+                                Monitor.Log($"Creating new debris for {item.DisplayName}");
+                                Game1.createItemDebris(item, Game1.player.getStandingPosition(), rand.Next(4));
+                                //}
+                            }
+                        }
+                    }
+
+                    tempDebris = new List<Debris>(Game1.currentLocation.debris.ToList());
                 }
             }
 
@@ -1645,8 +1730,15 @@ namespace LevelExtender
 
             return m;
         }
-        private void SaveEvents_AfterLoad(object sender, EventArgs e)
+
+        Timer shouldDraw;
+
+        private void SaveEvents_AfterLoad(object sender, SaveLoadedEventArgs e)
         {
+            SetTimer(2000, 2);
+
+            tempDebris = Game1.currentLocation.debris.ToList();
+
             for (int i = 0; i < 5; i++)
             {
                 dxp[i] = Game1.player.experiencePoints[i];
@@ -1990,3 +2082,10 @@ namespace LevelExtender
     }
 }
 
+static class Extensions
+{
+    public static IList<T> Clone<T>(this IList<T> listToClone) where T : ICloneable
+    {
+        return listToClone.Select(item => (T)item.Clone()).ToList();
+    }
+}
