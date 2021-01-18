@@ -86,6 +86,8 @@ namespace LevelExtender
 
         List<Debris> tempDebris = new List<Debris>();
 
+        //List<Item> itemsAdded = new List<Item>();
+
         public ModEntry()
         {
             instance = this;
@@ -136,9 +138,20 @@ namespace LevelExtender
 
             harmony = HarmonyInstance.Create(this.ModManifest.UniqueID);
             Type[] types1 = { typeof(Microsoft.Xna.Framework.Rectangle), typeof(int), typeof(int), typeof(bool), typeof(float), typeof(int), typeof(float), typeof(float), typeof(bool), typeof(Farmer) };
+            Type[] types2 = { typeof(Item) };
+            Type[] types3 = { typeof(Item), typeof(bool) };
+
             harmony.Patch(
                     original: AccessTools.Method(typeof(StardewValley.GameLocation), "damageMonster", types1), //nameof(this.Helper.Reflection.GetMethod(typeof(StardewValley.Tools.FishingRod), "doPullFishFromWater"))),
                     prefix: new HarmonyMethod(typeof(ModEntry), nameof(this.DM))
+                );
+            /*harmony.Patch(
+                    original: AccessTools.Method(typeof(StardewValley.Farmer), "addItemToInventory", types2), //nameof(this.Helper.Reflection.GetMethod(typeof(StardewValley.Tools.FishingRod), "doPullFishFromWater"))),
+                    prefix: new HarmonyMethod(typeof(ModEntry), nameof(this.AITI1))
+                );*/
+            harmony.Patch(
+                    original: AccessTools.Method(typeof(StardewValley.Farmer), "addItemToInventoryBool", types3), //nameof(this.Helper.Reflection.GetMethod(typeof(StardewValley.Tools.FishingRod), "doPullFishFromWater"))),
+                    prefix: new HarmonyMethod(typeof(ModEntry), nameof(this.AITI2))
                 );
             /*harmony.Patch(
                     original: AccessTools.Method(typeof(StardewValley.Menus.ItemGrabMenu), "dropHeldItem"), //nameof(this.Helper.Reflection.GetMethod(typeof(StardewValley.Tools.FishingRod), "doPullFishFromWater"))),
@@ -167,7 +180,7 @@ namespace LevelExtender
             helper.Events.Input.ButtonReleased += this.ControlEvent_KeyReleased;
             helper.Events.Display.Rendered += this.Display_Rendered;
             helper.Events.Player.Warped += this.Player_Warped;
-
+            
             //LEE.OnXPChanged += LEE;
 
             helper.ConsoleCommands.Add("xp", "Displays the xp table for your current levels.", this.XPT);
@@ -183,6 +196,94 @@ namespace LevelExtender
             LEE.OnXPChanged += this.OnXPChanged;
 
 
+        }
+
+        public static bool AITI2(Item item, bool makeActiveObject)
+        {
+            try
+            {
+                if (item == null || item.HasBeenInInventory)
+                    return true;
+
+                //Monitor.Log($"Picking up item {item.DisplayName}");
+                int cat = item.Category;
+
+                if ((cat == -16 || cat == -74 || cat == -75 || cat == -79 || cat == -80 || cat == -81) && ShouldDup(0, 2))
+                {
+                    item.Stack += 1;
+                    Game1.chatBox.addMessage($"Your Farming/Foraging level allowed you to obtain an extra {item.DisplayName}!", Color.DeepSkyBlue);
+                }
+                else if ((cat == -4) && ShouldDup(1))
+                {
+                    item.Stack += 1;
+                    Game1.chatBox.addMessage($"Your Fishing level allowed you to obtain an extra {item.DisplayName}!", Color.DeepSkyBlue);
+                }
+                else if ((cat == -2 || cat == -12 || cat == -15) && ShouldDup(3))
+                {
+                    item.Stack += 1;
+                    Game1.chatBox.addMessage($"Your Mining level allowed you to obtain an extra {item.DisplayName}!", Color.DeepSkyBlue);
+                }
+                else if ((cat == -28 || cat == -29 || cat == -95 || cat == -96 || cat == -98) && ShouldDup(4))
+                {
+                    item.Stack += 1;
+                    Game1.chatBox.addMessage($"Your Combat level allowed you to obtain an extra {item.DisplayName}!", Color.DeepSkyBlue);
+                }
+
+
+                item.HasBeenInInventory = true;
+
+                return true;
+
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"Failed in {nameof(AITI2)}:\n{ex}", LogLevel.Error);
+                return true;
+            }
+        }
+
+        public static bool AITI1(Item item)
+        {
+            try
+            {
+                if (item == null || item.HasBeenInInventory)
+                    return true;
+
+                Monitor.Log($"Picking up item {item.DisplayName}");
+                int cat = item.Category;
+
+                if ((cat == -16 || cat == -74 || cat == -75 || cat == -79 || cat == -80 || cat == -81) && ShouldDup(0, 2))
+                {
+                    item.Stack += 1;
+                    Game1.chatBox.addMessage($"Your Farming/Foraging level allowed you to obtain an extra {item.DisplayName}!", Color.LightSteelBlue);
+                }
+                else if ((cat == -4) && ShouldDup(1))
+                {
+                    item.Stack += 1;
+                    Game1.chatBox.addMessage($"Your Fishing level allowed you to obtain an extra {item.DisplayName}!", Color.LightSteelBlue);
+                }
+                else if ((cat == -2 || cat == -12 || cat == -15) && ShouldDup(3))
+                {
+                    item.Stack += 1;
+                    Game1.chatBox.addMessage($"Your Mining level allowed you to obtain an extra {item.DisplayName}!", Color.LightSteelBlue);
+                }
+                else if ((cat == -28 || cat == -29 || cat == -95 || cat == -96 || cat == -98) && ShouldDup(4))
+                {
+                    item.Stack += 1;
+                    Game1.chatBox.addMessage($"Your Combat level allowed you to obtain an extra {item.DisplayName}!", Color.LightSteelBlue);
+                }
+
+
+                item.HasBeenInInventory = true;
+
+                return true;
+
+            }
+            catch(Exception ex)
+            {
+                Monitor.Log($"Failed in {nameof(AITI1)}:\n{ex}", LogLevel.Error);
+                return true;
+            }
         }
 
         private void Player_Warped(object sender, WarpedEventArgs e)
@@ -1388,7 +1489,7 @@ namespace LevelExtender
                     m.Slipperiness += rand.Next(10) + 5;
                     m.coinsToDrop.Value = rand.Next(10) * 50;
                     m.startGlowing(new Color(rand.Next(0, 255), rand.Next(0, 255), rand.Next(0, 255)), true, 1.0f);
-                    m.Health *= rand.Next(Game1.player.CombatLevel / 2, Game1.player.CombatLevel);
+                    m.Health *= 1 + (rand.Next(Game1.player.CombatLevel / 2, Game1.player.CombatLevel));
 
                     var data = Game1.content.Load<Dictionary<int, string>>("Data\\ObjectInformation");
                     //Item item = new StardewValley.Object(rand.Next(data.Count), 1);
@@ -1559,41 +1660,75 @@ namespace LevelExtender
             }
 
             if (e.IsMultipleOf(15))
-            { 
+            {
                 //if (Game1.currentLocation.debris.Count > 0)
                 //Monitor.Log($"Current debs 0: {Game1.currentLocation.debris[0].item.DisplayName}");
-                if (tempDebris.Count != Game1.currentLocation.debris.Count)
+                //Monitor.Log($"gameloc debris count {tempDebris.Count}/{Game1.currentLocation.debris.Count}");
+            /*    if (tempDebris.Count != Game1.currentLocation.debris.Count)
                 {
                     GameLocation cl = Game1.currentLocation;
                     int diff = cl.debris.Count - tempDebris.Count;
 
-                    //Monitor.Log($"LE debris diff: {diff}, gameloc debris count {cl.debris.Count}");
+                    //Monitor.Log($"LE debris diff: {diff}, gameloc debris count {tempDebris.Count}/{cl.debris.Count}");
 
                     if (diff > 0)
                     {
-                        for (int i = cl.debris.Count - diff; i < cl.debris.Count; i++)
+                        int deb_count = cl.debris.Count;
+
+                        for (int i = deb_count - diff; i < deb_count; i++)
                         {
                             Item item = cl.debris[i].item;
                             if (item == null)
                                 continue;
 
                             int cat = item.Category;
-
-                            if (true)
+                            
+                            if (!item.HasBeenInInventory)
                             {
-                                //if (cat == -2 || cat == -12 || cat == -15)
-                                //{
-                                Monitor.Log($"Creating new debris for {item.DisplayName}");
-                                Game1.createItemDebris(item, Game1.player.getStandingPosition(), rand.Next(4));
-                                //}
+                                if ((cat == -2 || cat == -12 || cat == -15) && ShouldDup(3))
+                                {
+                                    Game1.createItemDebris(item.getOne(), Game1.player.getStandingPosition(), rand.Next(4));
+                                }
+                                else if ((cat == -28) && ShouldDup(4))
+                                {
+                                    Game1.createItemDebris(item.getOne(), Game1.player.getStandingPosition(), rand.Next(4));
+                                }
                             }
                         }
                     }
 
                     tempDebris = new List<Debris>(Game1.currentLocation.debris.ToList());
                 }
+            */
+
+            }
+            
+        }
+
+
+        public static double[] dupRates = { 0.002, 0.002, 0.002, 0.002, 0.002 };
+
+        public static bool ShouldDup(int index)
+        {
+            int[] skillLevs = { Game1.player.FarmingLevel, Game1.player.FishingLevel, Game1.player.ForagingLevel, Game1.player.MiningLevel, Game1.player.CombatLevel };
+
+            if(rand.NextDouble() <= (skillLevs[index] * dupRates[index]))
+            {
+                return true;
             }
 
+            return false;
+        }
+        public static bool ShouldDup(int index, int index2)
+        {
+            int[] skillLevs = { Game1.player.FarmingLevel, Game1.player.FishingLevel, Game1.player.ForagingLevel, Game1.player.MiningLevel, Game1.player.CombatLevel };
+
+            if (rand.NextDouble() <= (((skillLevs[index] + skillLevs[index2])/2.0) * ((dupRates[index] + dupRates[index2])/2.0)))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private void TimeEvent_AfterDayStarted(object sender, EventArgs e)
@@ -1934,7 +2069,7 @@ namespace LevelExtender
                 {
                     Game1.player.combatLevel.Value = sLevs[i];
                 }
-                Monitor.Log($"You loaded {snames[i]} level {sLevs[i]}!");
+                //Monitor.Log($"You loaded {snames[i]} level {sLevs[i]}!");
             }
         }
 
