@@ -190,7 +190,7 @@ namespace LevelExtender
             helper.ConsoleCommands.Add("spawn_modifier", "Forcefully changes monster spawn rate to specified decimal value: spawn_modifier <decimal(percent)> : -1.0 to not have any effect.", this.SM);
             helper.ConsoleCommands.Add("xp_table", "Tells the players current XP above or at level 10.", this.TellXP);
             helper.ConsoleCommands.Add("set_xp", "Sets your current XP for a given skill: set_xp <skill> <XP: int 0 -> ANY>", this.SetXP);
-            helper.ConsoleCommands.Add("draw_bars", "Sets whether the XP bars should be drawn or not: draw_bars <bool>, Default; false.", this.DrawBars);
+            helper.ConsoleCommands.Add("draw_bars", "Sets whether the XP bars should be drawn or not: draw_bars <bool>, Default; true.", this.DrawBars);
             //helper.ConsoleCommands.Add("LE_cmds", "Displays the xp table for your current levels.", this.XPT);
 
             this.Helper.Content.InvalidateCache("Data/Fish");
