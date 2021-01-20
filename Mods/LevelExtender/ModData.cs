@@ -13,6 +13,7 @@
         public int FoLV { get; set; }
         public bool WorldMonsters { get; set; }
         public double Xp_modifier { get; set; }
+        public bool drawBars { get; set; }
         public ModData()
         {
             this.FXP = 0;
@@ -27,6 +28,7 @@
             this.FoLV = 10;
             this.WorldMonsters = false;
             this.Xp_modifier = 1.0;
+            this.drawBars = true;
         }
     }
 }

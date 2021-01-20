@@ -190,12 +190,22 @@ namespace LevelExtender
             helper.ConsoleCommands.Add("spawn_modifier", "Forcefully changes monster spawn rate to specified decimal value: spawn_modifier <decimal(percent)> : -1.0 to not have any effect.", this.SM);
             helper.ConsoleCommands.Add("xp_table", "Tells the players current XP above or at level 10.", this.TellXP);
             helper.ConsoleCommands.Add("set_xp", "Sets your current XP for a given skill: set_xp <skill> <XP: int 0 -> ANY>", this.SetXP);
+            helper.ConsoleCommands.Add("draw_bars", "Sets whether the XP bars should be drawn or not: draw_bars <bool>, Default; false.", this.DrawBars);
             //helper.ConsoleCommands.Add("LE_cmds", "Displays the xp table for your current levels.", this.XPT);
 
             this.Helper.Content.InvalidateCache("Data/Fish");
             LEE.OnXPChanged += this.OnXPChanged;
 
 
+        }
+
+        private void DrawBars(string arg1, string[] arg2)
+        {
+            if (!bool.TryParse(arg2[0], out bool val))
+                return;
+
+            config.drawBars = val;
+            Monitor.Log($"You succesfully set draw XP bars to {val}.");
         }
 
         public static bool AITI2(Item item, bool makeActiveObject)
@@ -230,8 +240,8 @@ namespace LevelExtender
                 }
 
 
-                item.HasBeenInInventory = true;
-
+                //item.HasBeenInInventory = true;
+                
                 return true;
 
             }
@@ -577,39 +587,48 @@ namespace LevelExtender
                         Monitor.Log("endmove!");
                     }*/
 
-                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX - 7, startY + (barSep * i) - 7 - xpBars[i].ychi, 214, 64), Color.DarkRed * transp);
-                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX - 5, startY + (barSep * i) - 5 - xpBars[i].ychi, 210, 60), new Color(210, 173, 85) * transp);
-                    Game1.spriteBatch.DrawString(Game1.smallFont, $"{skills[key]}", new Vector2(startX + 35 - ((skills[key].Length - 13) * 4), startY + (barSep * i) - xpBars[i].ychi), Color.Black * transp, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 3), SpriteEffects.None, 0.5f);
-                    Game1.spriteBatch.DrawString(Game1.smallFont, $"{skills[key]}", new Vector2(startX + 35 + 1 - ((skills[key].Length - 13) * 4), startY + (barSep * i) + 1 - xpBars[i].ychi), Color.Black * transp, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 3), SpriteEffects.None, 0.5f);
-
-                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX, startY + (barSep * i) + sep - xpBars[i].ychi, 200, 20), Color.Black * transp);
-                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1, startY + (barSep * i) + sep + 1 - xpBars[i].ychi, bar1w, 18), Color.SeaGreen * transp);
-                    Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1 + bar1w, startY + (barSep * i) + sep + 1 - xpBars[i].ychi, bar2w, 18), Color.Turquoise * transp);
-
-                    Vector2 mPos = new Vector2(Game1.getMouseX(), Game1.getMouseY());
-                    Vector2 bCenter = new Vector2(startX + (200 / 2), startY + (barSep * i) + sep + (20 / 2) - xpBars[i].ychi);
-                    float dist = Vector2.Distance(mPos, bCenter);
-
-                    if (dist <= 250f)
+                    if (config.drawBars)
                     {
-                        if (lev < 10)
+
+                        Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX - 7, startY + (barSep * i) - 7 - xpBars[i].ychi, 214, 64), Color.DarkRed * transp);
+                        Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX - 5, startY + (barSep * i) - 5 - xpBars[i].ychi, 210, 60), new Color(210, 173, 85) * transp);
+                        //Game1.spriteBatch.DrawString(Game1.dialogueFont, $"{skills[key]}", new Vector2((int)Math.Round(((startX - 7 + 214) / 2.0) - ((skills[key].Length / 2.0) * 12)), startY - 3 + (barSep * i) - xpBars[i].ychi), Color.Black * transp, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 6f), SpriteEffects.None, 0.5f);
+                        //Game1.spriteBatch.DrawString(Game1.dialogueFont, $"{skills[key]}", new Vector2((int)Math.Round(((startX - 7 + 214) / 2.0) - ((skills[key].Length / 2.0) * 12)) + 1, startY - 3 + (barSep * i) + 1 - xpBars[i].ychi), Color.Black * transp, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 6f), SpriteEffects.None, 0.5f);
+                        Vector2 sn1loc = new Vector2((int)Math.Round(((startX - 7 + 214) / 2.0) - (Game1.dialogueFont.MeasureString(skills[key]).X * (Game1.pixelZoom / 6.0f / 2.0f))), startY - 3 + (barSep * i) - xpBars[i].ychi);
+                        //Utility.drawTextWithColoredShadow(Game1.spriteBatch, skills[key], Game1.dialogueFont, sn1loc, Color.Black * (transp), new Color(90, 35, 0) * transp, Game1.pixelZoom / 6f, 0.5f);
+                        
+                        Game1.spriteBatch.DrawString(Game1.dialogueFont, $"{skills[key]}", new Vector2((int)Math.Round(((startX - 7 + 214) / 2.0) - (Game1.dialogueFont.MeasureString(skills[key]).X * (Game1.pixelZoom / 6.0f / 2.0f))), startY - 3 + (barSep * i) - xpBars[i].ychi), new Color(30, 3, 0) * (transp * 1.1f), 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 6f), SpriteEffects.None, 0.5f);
+                        Game1.spriteBatch.DrawString(Game1.dialogueFont, $"{skills[key]}", new Vector2((int)Math.Round(((startX - 7 + 214) / 2.0) - (Game1.dialogueFont.MeasureString(skills[key]).X * (Game1.pixelZoom / 6.0f / 2.0f))) + 1, startY - 3 + (barSep * i) - xpBars[i].ychi + 1), new Color(90, 35, 0) * (transp), 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 6.0f), SpriteEffects.None, 0.5f);
+
+                        Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX, startY + (barSep * i) + sep - xpBars[i].ychi, 200, 20), Color.Black * transp);
+                        Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1, startY + (barSep * i) + sep + 1 - xpBars[i].ychi, bar1w, 18), Color.SeaGreen * transp);
+                        Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1 + bar1w, startY + (barSep * i) + sep + 1 - xpBars[i].ychi, bar2w, 18), Color.Turquoise * transp);
+                        
+                        Vector2 mPos = new Vector2(Game1.getMouseX(), Game1.getMouseY());
+                        Vector2 bCenter = new Vector2(startX + (200 / 2), startY + (barSep * i) + sep + (20 / 2) - xpBars[i].ychi);
+                        float dist = Vector2.Distance(mPos, bCenter);
+                        
+                        if (dist <= 250f)
                         {
-                            curXP = Game1.player.experiencePoints[key];
+                            if (lev < 10)
+                            {
+                                curXP = Game1.player.experiencePoints[key];
+                            }
+                            else
+                            {
+                                curXP = addedXP[key];
+                            }
+
+                            maxXP = GetReqXP(lev);
+
+                            float f = Math.Min(25f / dist, 1.0f);
+
+                            string xpt = $"{curXP} / {maxXP}";
+
+                            Game1.spriteBatch.DrawString(Game1.dialogueFont, xpt, new Vector2((int)Math.Round(((startX + 200) / 2.0) - (Game1.dialogueFont.MeasureString(xpt).X * (Game1.pixelZoom / 10.0f / 2.0f))), startY + (barSep * i) + sep + 1 - xpBars[i].ychi), Color.White * f * (transp + 0.05f), 0.0f, Vector2.Zero, (Game1.pixelZoom / 10f), SpriteEffects.None, 0.5f);
                         }
-                        else
-                        {
-                            curXP = addedXP[key];
-                        }
 
-                        maxXP = GetReqXP(lev);
-
-                        float f = Math.Min(25f / dist, 1.0f);
-
-                        string xpt = $"{curXP} / {maxXP}";
-
-                        Game1.spriteBatch.DrawString(Game1.smallFont, xpt, new Vector2(startX + 1 + (198 / 2) - (xpt.Length * 4), startY + (barSep * i) + sep + 1 - xpBars[i].ychi), Color.White * f * (transp + 0.05f), 0.0f, Vector2.Zero, (Game1.pixelZoom / 6f), SpriteEffects.None, 0.5f);
                     }
-
                 }
 
                 catch (Exception ex)
@@ -1584,6 +1603,11 @@ namespace LevelExtender
                     //Monitor.Log($"Buffs: {this.Helper.Reflection.GetField<string>(Game1.buffsDisplay, "buffs").GetValue()}");
                     int bobberBonus = 0;
                     Tool tool = Game1.player.CurrentTool;
+                    bool beginnersRod;
+
+
+                    beginnersRod = tool != null && tool is FishingRod && (int)(NetFieldBase<int, NetInt>)tool.upgradeLevel == 1;
+                    
                     //Monitor.Log($"{tool.Name}");
                     //Monitor.Log($"{tool.attachmentSlots()}");
                     /*for(int i = 0; i < tool.attachmentSlots(); i++)
@@ -1596,6 +1620,7 @@ namespace LevelExtender
                             bobberBonus = 24;
                         }
                     }*/
+
 
                     foreach (var attachment in tool.attachments.Where(n => n != null))
                     {
@@ -1618,15 +1643,18 @@ namespace LevelExtender
 
                     if (!(this.Helper.ModRegistry.IsLoaded("DevinLematty.ExtremeFishingOverhaul")))
                     {
-                        if (Game1.player.FishingLevel < 11)
+                        if(beginnersRod)
+                            bobberBarSize = 80 + (5 * 9);
+                        else if (Game1.player.FishingLevel < 11)
                             bobberBarSize = 80 + bobberBonus + (int)(Game1.player.FishingLevel * 9);
                         else
                             bobberBarSize = 165 + bobberBonus + (int)(Game1.player.FishingLevel * (0.5 + (rand.NextDouble() / 2.0)));
                     }
                     else
                     {
-                        //bobberBarSize = 80 + bobberBonus + (int)(Game1.player.FishingLevel * 1.6);
-                        if (Game1.player.FishingLevel < 11)
+                        if (beginnersRod)
+                            bobberBarSize = 80 + (5 * 7);
+                        else if (Game1.player.FishingLevel < 11)
                             bobberBarSize = 80 + bobberBonus + (int)(Game1.player.FishingLevel * 7);
                         else if(Game1.player.FishingLevel > 10 && Game1.player.FishingLevel < 20)
                             bobberBarSize = 150 + bobberBonus + (int)(Game1.player.FishingLevel);
