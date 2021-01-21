@@ -28,6 +28,9 @@ namespace AdditionalSkillsBase
         public static Thieving th;
         public bool th_check = false;
 
+        public static Magic mg;
+        public bool mg_check = false;
+
         public bool shouldDraw = false;
         public string shouldDraw2;
 
@@ -85,6 +88,8 @@ namespace AdditionalSkillsBase
         private void SaveEvents_AfterLoad(object sender, EventArgs e)
         {
             th = new Thieving(instance, th_check);
+            mg = new Magic(instance, mg_check);
+            mg_check = true;
             th_check = true;
         }
 
