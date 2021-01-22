@@ -87,8 +87,8 @@ namespace AdditionalSkillsBase
 
         private void SaveEvents_AfterLoad(object sender, EventArgs e)
         {
-            th = new Thieving(instance, th_check);
-            mg = new Magic(instance, mg_check);
+            th = new Thieving(instance);
+            mg = new Magic(instance);
             mg_check = true;
             th_check = true;
         }

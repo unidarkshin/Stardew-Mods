@@ -31,13 +31,14 @@ namespace AdditionalSkillsBase
 
         double baseChance;
         double mult;
+        public bool th_c;
 
         private Timer aTimer = new Timer();
 
         public List<int> perks;
         public List<string> perksInfo;
 
-        public Thieving(Mod instance, bool th_c)
+        public Thieving(Mod instance)
         {
             this.instance = instance;
             rnd = new Random();
@@ -50,13 +51,13 @@ namespace AdditionalSkillsBase
             instance.Helper.Events.Input.ButtonPressed += InputEvents_ButtonPressed; //I think these 2 are right
             instance.Helper.Events.GameLoop.SaveCreating += SaveEvents_BeforeSave;
 
-            if (!th_c)
+            if (th_c)
             {
                 instance.Helper.ConsoleCommands.Add("th_lev", "Sets your thieving level. Syntax: th_lev <Integer>", this.th_lev);
-                instance.Helper.ConsoleCommands.Add("th_print", "Prints Your thieving level.", this.th_print);
                 instance.Helper.ConsoleCommands.Add("th_xp", "Sets your thieving xp.", this.th_xp);
-                instance.Helper.ConsoleCommands.Add("th_perks", "List the thieving perks gained every 10 levels.", this.th_perks);
             }
+                instance.Helper.ConsoleCommands.Add("th_perks", "List the thieving perks gained every 10 levels.", this.th_perks);
+                instance.Helper.ConsoleCommands.Add("th_print", "Prints Your thieving level.", this.th_print);
         }
 
         private void th_perks(string arg1, string[] arg2)
@@ -127,32 +128,48 @@ namespace AdditionalSkillsBase
             saveData();
         }
 
+        DateTime ppTime = new DateTime();
+        public bool didPP = false;
         private void InputEvents_ButtonPressed(object sender, ButtonPressedEventArgs e)
         {
             if (!Context.IsWorldReady)
                 return;
 
-            if (e.Button == config.key && Game1.player.addedSpeed >= 0)
+            if (e.Button == config.key)
             {
-                IList<NPC> chars = Game1.player.currentLocation.getCharacters();
-                NPC minCh = null;
-
-                float minDist = 100.0f;
-
-                foreach (NPC ch in chars)
+                if (DateTime.Now >= ppTime.AddMilliseconds(2000))
                 {
-                    float dist = Vector2.Distance(Game1.player.getTileLocation(), ch.getTileLocation());
-
-                    if (minCh == null || dist < minDist)
-                    {
-                        minDist = dist;
-                        minCh = ch;
-                    }
+                    didPP = false;
+                }
+                else
+                {
+                    Game1.chatBox.addMessage("Your fingers are on cooldown", Color.IndianRed);
                 }
 
-                if (minCh != null && minDist < 2.0f)
+                if (Game1.player.addedSpeed >= 0 && !didPP)
                 {
-                    attemptPP(minCh);
+                    IList<NPC> chars = Game1.player.currentLocation.getCharacters();
+                    NPC minCh = null;
+
+                    float minDist = 100.0f;
+
+                    foreach (NPC ch in chars)
+                    {
+                        float dist = Vector2.Distance(Game1.player.getTileLocation(), ch.getTileLocation());
+
+                        if (minCh == null || dist < minDist)
+                        {
+                            minDist = dist;
+                            minCh = ch;
+                        }
+                    }
+
+                    if (minCh != null && minDist < 2.0f)
+                    {
+                        attemptPP(minCh);
+                        ppTime = DateTime.Now;
+                        didPP = true;
+                    }
                 }
             }
         }
@@ -331,6 +348,7 @@ namespace AdditionalSkillsBase
             level = config.level;
             baseChance = config.baseChance;
             mult = config.mult;
+            th_c = config.cheating;
 
             if (!File.Exists($"thieving/{Constants.SaveFolderName}.json"))
                 instance.Helper.Data.WriteJsonFile<ModData>($"thieving/{Constants.SaveFolderName}.json", config);
@@ -371,9 +389,9 @@ namespace AdditionalSkillsBase
         public int xp { get; set; } = 0;
         public int level { get; set; } = 1;
         public SButton key { get; set; } = SButton.P;
-
         public double baseChance { get; set; } = 0.1;
         public double mult { get; set; } = 1.0;
+        public bool cheating { get; set; } = false;
     }
 
 

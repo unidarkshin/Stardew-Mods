@@ -29,6 +29,7 @@ namespace AdditionalSkillsBase
 
         public MagicData config;
 
+        public bool mg_c;
         double baseChance;
         double mult;
 
@@ -40,7 +41,7 @@ namespace AdditionalSkillsBase
         public List<int> skills;
         public List<string> skillsInfo;
 
-        public Magic(Mod instance, bool th_c)
+        public Magic(Mod instance)
         {
             this.instance = instance;
             rnd = new Random();
@@ -63,24 +64,20 @@ namespace AdditionalSkillsBase
             instance.Helper.Events.GameLoop.OneSecondUpdateTicked += TimeEvents_OneSecondTick;
             instance.Helper.Events.GameLoop.SaveCreated += SaveEvents_AfterSave;
             instance.Helper.Events.Player.Warped += Player_Warped;
+            instance.Helper.Events.GameLoop.DayStarted += GameLoop_DayStarted;
 
-            if (!th_c)
+            if (mg_c)
             {
                 instance.Helper.ConsoleCommands.Add("mg_lev", "Sets your magic level. Syntax: th_lev <Integer>", this.mg_lev);
-                instance.Helper.ConsoleCommands.Add("mg_print", "Prints Your magic level and xp for next level.", this.mg_print);
                 instance.Helper.ConsoleCommands.Add("mg_setxp", "Sets your magic xp.", this.mg_setxp);
-                instance.Helper.ConsoleCommands.Add("mg_xp", "See your magic xp.", this.mg_xp);
-                instance.Helper.ConsoleCommands.Add("mg_perks", "List the magic  perks gained every 10 levels.", this.mg_perks);
+
             }
+                instance.Helper.ConsoleCommands.Add("mg_print", "Prints Your magic level and xp for next level.", this.mg_print);
+                instance.Helper.ConsoleCommands.Add("mg_perks", "List the magic  perks gained every 10 levels.", this.mg_perks);
+                instance.Helper.ConsoleCommands.Add("mg_xp", "See your magic xp.", this.mg_xp);
         }
 
-        public bool hasWarped = false;
-        public bool hasMed = false;
 
-        private void Player_Warped(object sender, WarpedEventArgs e)
-        {
-            hasWarped = true;
-        }
 
         private void mg_perks(string arg1, string[] arg2)
         {
@@ -144,7 +141,7 @@ namespace AdditionalSkillsBase
                 level = l;
                 xp = 0;
 
-                instance.Monitor.Log("Set thieving level successful.");
+                instance.Monitor.Log("Set magic level successful.");
 
                 addPerks();
             }
@@ -156,6 +153,19 @@ namespace AdditionalSkillsBase
 
         }
 
+        private void GameLoop_DayStarted(object sender, DayStartedEventArgs e)
+        {
+            hasMed = false;
+        }
+
+        public bool hasWarped = false;
+        public bool hasMed = false;
+
+        private void Player_Warped(object sender, WarpedEventArgs e)
+        {
+            hasWarped = true;
+        }
+
         private void SaveEvents_BeforeSave(object sender, EventArgs e)
         {
             saveData();
@@ -163,7 +173,7 @@ namespace AdditionalSkillsBase
 
         private void SaveEvents_AfterSave(object sender, EventArgs e)
         {
-           
+            
         }
 
         DateTime oldTime = new DateTime();
@@ -268,6 +278,7 @@ namespace AdditionalSkillsBase
             level = config.level;
             baseChance = config.baseChance;
             mult = config.mult;
+            mg_c = config.cheating;
 
             if (!File.Exists($"thieving/{Constants.SaveFolderName}.json"))
                 instance.Helper.Data.WriteJsonFile<MagicData>($"magic/{Constants.SaveFolderName}.json", config);
@@ -310,6 +321,7 @@ namespace AdditionalSkillsBase
         public SButton key { get; set; } = SButton.Q;
         public double baseChance { get; set; } = 0.1;
         public double mult { get; set; } = 1.0;
+        public bool cheating { get; set; }  = false;
     }
 
 
