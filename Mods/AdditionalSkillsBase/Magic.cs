@@ -29,6 +29,7 @@ namespace AdditionalSkillsBase
 
         public MagicData config;
 
+        public bool mg_c;
         double baseChance;
         double mult;
 
@@ -40,7 +41,7 @@ namespace AdditionalSkillsBase
         public List<int> skills;
         public List<string> skillsInfo;
 
-        public Magic(Mod instance, bool th_c)
+        public Magic(Mod instance)
         {
             this.instance = instance;
             rnd = new Random();
@@ -62,15 +63,21 @@ namespace AdditionalSkillsBase
             instance.Helper.Events.GameLoop.SaveCreating += SaveEvents_BeforeSave;
             instance.Helper.Events.GameLoop.OneSecondUpdateTicked += TimeEvents_OneSecondTick;
             instance.Helper.Events.GameLoop.SaveCreated += SaveEvents_AfterSave;
+            instance.Helper.Events.Player.Warped += Player_Warped;
+            instance.Helper.Events.GameLoop.DayStarted += GameLoop_DayStarted;
 
-            if (!th_c)
+            if (mg_c)
             {
-                instance.Helper.ConsoleCommands.Add("mg_lev", "Sets your thieving level. Syntax: th_lev <Integer>", this.th_lev);
-                instance.Helper.ConsoleCommands.Add("mg_print", "Prints Your thieving level.", this.th_print);
-                instance.Helper.ConsoleCommands.Add("mg_xp", "Sets your thieving xp.", this.th_xp);
-                instance.Helper.ConsoleCommands.Add("mg_perks", "List the thieving perks gained every 10 levels.", this.mg_perks);
+                instance.Helper.ConsoleCommands.Add("mg_lev", "Sets your magic level. Syntax: th_lev <Integer>", this.mg_lev);
+                instance.Helper.ConsoleCommands.Add("mg_setxp", "Sets your magic xp.", this.mg_setxp);
+
             }
+                instance.Helper.ConsoleCommands.Add("mg_print", "Prints Your magic level and xp for next level.", this.mg_print);
+                instance.Helper.ConsoleCommands.Add("mg_perks", "List the magic  perks gained every 10 levels.", this.mg_perks);
+                instance.Helper.ConsoleCommands.Add("mg_xp", "See your magic xp.", this.mg_xp);
         }
+
+
 
         private void mg_perks(string arg1, string[] arg2)
         {
@@ -99,7 +106,7 @@ namespace AdditionalSkillsBase
             skillsInfo.Add("BOOB)");
         }
 
-            private void th_xp(string arg1, string[] arg2)
+            private void mg_setxp(string arg1, string[] arg2)
         {
             if (int.TryParse(arg2[0], out int l) && l > 0)
             {
@@ -107,7 +114,7 @@ namespace AdditionalSkillsBase
 
                 checkForLevelUp();
 
-                instance.Monitor.Log("Set thieving xp successful.");
+                instance.Monitor.Log("Set magic xp successful.");
             }
             else
             {
@@ -115,19 +122,26 @@ namespace AdditionalSkillsBase
             }
         }
 
-        private void th_print(string arg1, string[] arg2)
+        private void mg_xp(string arg1, string[] arg2)
         {
-            instance.Monitor.Log($"Your thieving level is: {level}. You have {xp} / {(level * level * level) + 30} experience.");
+        
+                instance.Monitor.Log($"XP = {xp}" );
+            
         }
 
-        private void th_lev(string arg1, string[] arg2)
+        private void mg_print(string arg1, string[] arg2)
+        {
+            instance.Monitor.Log($"Your magic level is: {level}. You have {xp} / {(level * level * level) + 30} experience.");
+        }
+
+        private void mg_lev(string arg1, string[] arg2)
         {
             if (int.TryParse(arg2[0], out int l) && l > 0)
             {
                 level = l;
                 xp = 0;
 
-                instance.Monitor.Log("Set thieving level successful.");
+                instance.Monitor.Log("Set magic level successful.");
 
                 addPerks();
             }
@@ -139,6 +153,19 @@ namespace AdditionalSkillsBase
 
         }
 
+        private void GameLoop_DayStarted(object sender, DayStartedEventArgs e)
+        {
+            hasMed = false;
+        }
+
+        public bool hasWarped = false;
+        public bool hasMed = false;
+
+        private void Player_Warped(object sender, WarpedEventArgs e)
+        {
+            hasWarped = true;
+        }
+
         private void SaveEvents_BeforeSave(object sender, EventArgs e)
         {
             saveData();
@@ -146,160 +173,54 @@ namespace AdditionalSkillsBase
 
         private void SaveEvents_AfterSave(object sender, EventArgs e)
         {
-           
+            
         }
+
+        DateTime oldTime = new DateTime();
 
         private void InputEvents_ButtonPressed(object sender, ButtonPressedEventArgs e)
         {
             if (!Context.IsWorldReady)
                 return;
+            
 
-            if (e.Button == config.key && Game1.player.addedSpeed >= 0)
+
+            if (e.Button == config.key && Game1.player.addedSpeed == 0 && hasMed == false)
             {
-                IList<NPC> chars = Game1.player.currentLocation.getCharacters();
-                NPC minCh = null;
-
-                float minDist = 100.0f;
-
-                foreach (NPC ch in chars)
+                if (hasWarped)
                 {
-                    float dist = Vector2.Distance(Game1.player.getTileLocation(), ch.getTileLocation());
-
-                    if (minCh == null || dist < minDist)
-                    {
-                        minDist = dist;
-                        minCh = ch;
-                    }
+                    oldTime = DateTime.Now;
+                    Game1.player.canMove = true;
+                    hasWarped = false;
                 }
 
-                if (minCh != null && minDist < 2.0f)
+                if (Game1.player.CanMove && Context.CanPlayerMove && !Game1.player.isInBed)
                 {
-                    attemptPP(minCh);
+                    Game1.player.CanMove = false;
+                    oldTime = DateTime.Now;
+                }
+                else if (!Game1.player.CanMove && !Context.CanPlayerMove && !Game1.player.isInBed)
+                {
+                    Game1.player.CanMove = true;
+                    int ms = (int)((DateTime.Now - oldTime).TotalMilliseconds);
+                    int xp = (int)((ms / 1000.0) * 1.0);
+                    addXP(xp);
+                    oldTime = DateTime.Now;
+                    hasMed = true;
+                    
                 }
             }
+            
         }
+
+        
+
         private void TimeEvents_OneSecondTick(object sender, EventArgs e)
         {
 
         }
 
-        public void attemptPP(NPC ch)
-        {
-            double base2 = 0.0;
-            if (!ch.isMoving())
-            {
-                Vector2 next = ch.getTileLocation();
-                int dir = ch.getFacingDirection();
-
-                switch (dir)
-                {
-                    case 0:
-                        next = new Vector2(next.X, next.Y - 1);
-                        break;
-                    case 1:
-                        next = new Vector2(next.X + 1, next.Y);
-                        break;
-                    case 2:
-                        next = new Vector2(next.X, next.Y + 1);
-                        break;
-                    case 3:
-                        next = new Vector2(next.X - 1, next.Y);
-                        break;
-                    default:
-                        break;
-                }
-
-                //0 up, 1 right, 2 down, 3 left
-                //Game1.chatBox.addMessage($"{Vector2.Distance(Game1.player.getTileLocation(), ch.nextPositionVector2()).ToString()}", Color.Lavender);
-                if (Vector2.Distance(Game1.player.getTileLocation(), next) >= 1.8f && perks.Contains(7))
-                {
-                    base2 = 0.2;
-                    //instance.Monitor.Log("------Behind");
-                }
-                else if (Vector2.Distance(Game1.player.getTileLocation(), next) >= 1.8f && !perks.Contains(7))
-                {
-                    base2 = 0.1;
-                }
-                else
-                {
-                    //instance.Monitor.Log("------NOT Behind");
-                }
-
-            }
-
-            if (rnd.NextDouble() < ((baseChance + base2) + (mult * (level / 250.0))))
-            {
-                if (perks.Contains(10))
-                {
-                    Game1.player.health = Math.Min(Game1.player.health + (Game1.player.maxHealth / 2), Game1.player.maxHealth);
-                    Game1.player.Stamina = Math.Min(Game1.player.Stamina + (Game1.player.MaxStamina / 2), Game1.player.MaxStamina);
-                }
-                else if (perks.Contains(5))
-                {
-                    Game1.player.health = Math.Min(Game1.player.health + 6, Game1.player.maxHealth);
-                    Game1.player.Stamina = Math.Min(Game1.player.Stamina + 13, Game1.player.MaxStamina);
-                }
-
-
-
-                int m = (int)(rnd.Next(10, 50 + level) * (level / 10.0));
-
-                if (perks.Contains(8))
-                    m = m * 2;
-
-                Game1.player.Money += m;
-
-                Game1.chatBox.addMessage($"You magicked {m} coins from {ch.displayName}!", Color.DarkTurquoise);
-
-                addXP((int)(rnd.Next(1, 3) * ((level + 1) / 2.0)));
-
-                double ic = 0.01;
-
-                if (perks.Contains(9))
-                    ic = 0.03;
-
-
-                if (perks.Contains(1) && rnd.NextDouble() < ic)
-                {
-                    var data = Game1.content.Load<Dictionary<int, string>>("Data\\ObjectInformation");
-
-                    StardewValley.Object item = new StardewValley.Object(rnd.Next(0, data.Count - 1), 1);
-
-                    while (item.DisplayName.ToLower().Contains("error"))
-                    {
-                        item = new StardewValley.Object(rnd.Next(0, data.Count - 1), 1);
-                    }
-
-                    Game1.player.addItemToInventory((Item)item);
-
-
-                    addXP((5 + (level * 5)) + (int)(item.salePrice() * (level / 100.0)));
-
-                    Game1.chatBox.addMessage($"You magicked {item.DisplayName} from {ch.displayName}!", Color.DeepPink);
-                }
-            }
-            else
-            {
-                Game1.chatBox.addMessage($"You were caught magicking {ch.displayName}!", Color.Red);
-
-                if (perks.Contains(2))
-                {
-                    Game1.player.health -= (int)((5 + rnd.Next(1, 5)) / 2.0);
-                    Game1.player.Stamina -= (int)(((10 + rnd.Next(1, 10)) - (int)(Math.Round(level / 12.0))) / 2.0);
-                    Game1.player.addedSpeed = (int)(-0.5 * Game1.player.Speed);
-                }
-                else
-                {
-                    Game1.player.health -= 5 + rnd.Next(1, 5);
-                    Game1.player.Stamina -= ((10 + rnd.Next(1, 10)) - (int)(Math.Round(level / 12.0)));
-                    Game1.player.addedSpeed = -1 * Game1.player.Speed;
-                }
-
-                SetTimer(Math.Max(1000, 4000 - (level * 20))); //4000
-
-            }
-        }
-
+      
         public void addXP(int x)
         {
             if (perks.Contains(3))
@@ -357,6 +278,7 @@ namespace AdditionalSkillsBase
             level = config.level;
             baseChance = config.baseChance;
             mult = config.mult;
+            mg_c = config.cheating;
 
             if (!File.Exists($"thieving/{Constants.SaveFolderName}.json"))
                 instance.Helper.Data.WriteJsonFile<MagicData>($"magic/{Constants.SaveFolderName}.json", config);
@@ -396,10 +318,10 @@ namespace AdditionalSkillsBase
     {
         public int xp { get; set; } = 0;
         public int level { get; set; } = 1;
-        public SButton key { get; set; } = SButton.P;
-
+        public SButton key { get; set; } = SButton.Q;
         public double baseChance { get; set; } = 0.1;
         public double mult { get; set; } = 1.0;
+        public bool cheating { get; set; }  = false;
     }
 
 
