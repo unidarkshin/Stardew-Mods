@@ -10,11 +10,16 @@ namespace LevelExtender
 {
     public class LEModApi
     {
-        ModEntry ME;
+        public ModEntry ME;
 
         public LEModApi(ModEntry me)
         {
             ME = me;
+        }
+
+        public ModEntry GetMod()
+        {
+            return ME;
         }
 
         //This value will offset spawn-rate by the specified amount (1 second intervals)
@@ -25,7 +30,7 @@ namespace LevelExtender
             overSR = osr;
         }
 
-        public int[] CurrentXP()
+        /*public int[] CurrentXP()
         {
             return ME.GetCurXP();
         }
@@ -33,7 +38,7 @@ namespace LevelExtender
         public int[] RequiredXP()
         {
             return ME.GetReqXP();
-        }
+        }*/
 
         public event EventHandler<EXPEventArgs> OnXPChanged
         {

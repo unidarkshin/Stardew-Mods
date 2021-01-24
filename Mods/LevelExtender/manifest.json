@@ -3,7 +3,7 @@
     "Author": "Devin Lematty",
     "Version": "1.5.3-v001",
     "Description": "Extends profession levels to 100.",
-    "UniqueID": "Devin_Lematty.Level_Extender",
+    "UniqueID": "Unidarkshin.LevelExtender",
     "EntryDll": "LevelExtender.dll",
     "MinimumApiVersion": "3.7",
     "UpdateKeys": [ "Nexus:1471" ]
