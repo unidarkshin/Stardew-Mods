@@ -1304,19 +1304,19 @@ namespace LevelExtender
 
             if (e.IsMultipleOf(3600))
             {
-                List<int> tmons = new List<int>();
+                List<Monster> tmons = new List<Monster>();
 
                 foreach (Monster mon in monsters)
                 {
                     if (mon == null || mon.Health <= 0 || mon.currentLocation == null)
                     {
                         //monsters.Remove(mon);
-                        tmons.Add(monsters.IndexOf(mon));
+                        tmons.Add(mon);
                     }
                 }
-                foreach (int i in tmons)
+                foreach (Monster mon in tmons)
                 {
-                    monsters.RemoveAt(i);
+                    monsters.Remove(mon);
                 }
 
 
@@ -1439,7 +1439,7 @@ namespace LevelExtender
                     loc = Game1.player.currentLocation.getRandomTile();
                 }
 
-                int tier = rand.Next(0, 8);
+                int tier = rand.Next(0, 9);
 
                 Monster m = GetMonster(tier, loc * (float)Game1.tileSize);
 
@@ -1457,6 +1457,7 @@ namespace LevelExtender
 
                     m.objectsToDrop.Add(rand.Next(data.Count));
                     m.displayName += ": LE BOSS";
+                    m.Scale = m.Scale * (float)(1 + (rand.NextDouble() * Game1.player.CombatLevel / 25.0));
                 }
                 else
                 {
@@ -1466,10 +1467,12 @@ namespace LevelExtender
                 m.DamageToFarmer = (int)(m.DamageToFarmer / 1.5) + (int)(Game1.player.combatLevel.Value / 3);
                 //m.Health = (int)(m.Health / 1.5) + ((Game1.player.combatLevel.Value / 2) * (m.Health / 10));
                 //m.Health = m.Health * (int)Math.Round(Game1.player.combatLevel.Value * 0.1 * (rand.NextDouble() + rand.NextDouble()));
-                m.Health *= 1 + (Game1.player.CombatLevel / 5);
+                //int lovepower = m.Health;
+                m.Health *= 1 + (Game1.player.CombatLevel / 4);
+                //Monitor.Log($"{m.Name} Health: {lovepower} > {m.Health}");
                 m.focusedOnFarmers = true;
                 m.wildernessFarmMonster = true;
-                m.Speed += rand.Next((int)Math.Round((Game1.player.combatLevel.Value / 5.0)));
+                m.Speed += rand.Next((int)Math.Round((Game1.player.combatLevel.Value / 10.0)));
                 m.resilience.Set(m.resilience.Value + (Game1.player.combatLevel.Value / 10));
                 m.experienceGained.Value += (int)(m.Health / 100.0) + ((10 + (Game1.player.combatLevel.Value * 2)) * tier);
 
