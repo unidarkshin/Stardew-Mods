@@ -544,9 +544,9 @@ namespace LevelExtender
                             {
                                 curXP = xpBars[i].skill.xp;
                             }*/
-                            curXP = xp;
+                            //curXP = xp;
 
-                            maxXP = skill.getReqXP(lev);
+                            //maxXP = skill.getReqXP(lev);
 
                             float f = Math.Min(25f / dist, 1.0f);
 
@@ -595,7 +595,7 @@ namespace LevelExtender
                 return;
 
             //int[] skillLevs = { Game1.player.FarmingLevel, Game1.player.FishingLevel, Game1.player.ForagingLevel, Game1.player.MiningLevel, Game1.player.CombatLevel };
-            Skill skill = skills.SingleOrDefault(sk => String.Equals(sk.name, arg[0], StringComparison.OrdinalIgnoreCase));
+            Skill skill = skills.SingleOrDefault(sk => sk.name.ToLower() == arg[0].ToLower());
 
             if (skill == null)
             {
@@ -881,7 +881,7 @@ namespace LevelExtender
             if (args.Length < 2)
                 return;
 
-            Skill skill = skills.SingleOrDefault(sk => String.Equals(sk.name, args[0], StringComparison.OrdinalIgnoreCase));
+            Skill skill = skills.SingleOrDefault(sk => sk.name.ToLower() == args[0].ToLower());
 
             if (skill == null)
                 return;
@@ -939,7 +939,7 @@ namespace LevelExtender
                 return;
             }
 
-            Skill skill = skills.SingleOrDefault(sk => sk.name == args[0]);
+            Skill skill = skills.SingleOrDefault(sk => sk.name.ToLower() == args[0].ToLower());
 
             if (skill == null)
                 return;
@@ -1084,7 +1084,7 @@ namespace LevelExtender
             if (args.Length > 1 && double.TryParse(args[1], out double x) && x > 0.0)
             {
                 //xp_mod = x;
-                Skill skill = skills.SingleOrDefault(sk => String.Equals(sk.name, args[0], StringComparison.OrdinalIgnoreCase));
+                Skill skill = skills.SingleOrDefault(sk => sk.name.ToLower() == args[0].ToLower());
 
                 if (skill == null)
                     return;
@@ -1906,7 +1906,7 @@ namespace LevelExtender
                     Monitor.Log($"skill load - {str}");
                     //Skill sk = JsonConvert.DeserializeObject<Skill>(str);
                     string[] vals = str.Split(',');
-                    Skill sk = new Skill(vals[0], int.Parse(vals[1]), int.Parse(vals[2]), LE, defReqXPs, double.Parse(vals[3]), cats[count]);
+                    Skill sk = new Skill(vals[0], int.Parse(vals[1]), LE, defReqXPs, double.Parse(vals[2]), cats[count]);
                     skills.Add(sk);
                     snames.Add(sk.name);
                     categories.Add(sk.cats);
@@ -1917,7 +1917,7 @@ namespace LevelExtender
                 for (int i = count; i < 5; i++)
                 {
                     Monitor.Log($"adding skills - {i}, dxp: {Game1.player.experiencePoints[i]}");
-                    Skill sk = new Skill(sdnames[i], sdlevs[i], Game1.player.experiencePoints[i], LE, defReqXPs, 1, cats[i]);
+                    Skill sk = new Skill(sdnames[i], Game1.player.experiencePoints[i], LE, defReqXPs, 1, cats[i]);
                     skills.Add(sk);
                     snames.Add(sk.name);
                     categories.Add(sk.cats);
@@ -2003,7 +2003,7 @@ namespace LevelExtender
                 //serializer.Converters.Add(new JavaScriptDateTimeConverter());
                 //config.skills = new List<string>();
 
-                config.skills.Add($"{skill.name},{skill.level},{skill.xp},{skill.xp_mod}");
+                config.skills.Add($"{skill.name},{skill.xp},{skill.xp_mod}");
                 
             }
             /*if (Game1.player.farmingLevel.Value >= 10)
@@ -2311,12 +2311,12 @@ namespace LevelExtender
             set
             {
                 //LE.Monitor.Log($"LE Level: {level}, XP: {xp}, KEY: {key}");
-                int rxp = getReqXP(level);
+                //int rxp = getReqXP(level);
                 Level = value;
 
                 if (key < 5)
                 {
-                    LE.Monitor.Log($"LE Level: {level}, XP: {xp}, KEY: {key}");
+                    LE.Monitor.Log($"LE Level Initialize: {level}, XP: {xp}, KEY: {key}");
 
                     if (key == 0)
                         Game1.player.FarmingLevel = level;
@@ -2329,7 +2329,7 @@ namespace LevelExtender
                     else if (key == 4)
                         Game1.player.CombatLevel = level;
 
-                    Game1.player.experiencePoints[key] = rxp;
+                    //Game1.player.experiencePoints[key] = rxp;
                     /*if (level < 10)
                     {
                         Game1.player.experiencePoints[key] = GetDefStartXP();
@@ -2358,10 +2358,16 @@ namespace LevelExtender
                         }
                     }*/
                 }
-                else
+                if (!lvlbyxp)
                 {
-                    xp = rxp;
+                    int reqxp = getReqXP(level - 1);
+
+                    if (key < 5)
+                        Game1.player.experiencePoints[key] = reqxp;
+
+                    XP = reqxp;
                 }
+
 
                 lvlbyxp = false;
             }
@@ -2390,8 +2396,15 @@ namespace LevelExtender
 
         public int[] cats;
 
-        public Skill(string name, int level, int xp, ModEntry LE, List<int> xp_table = null, double xp_mod = 1.0, int[] cats = null)
+        int bmaxxp = 0;
+
+        public Skill(string name, int xp, ModEntry LE, List<int> xp_table = null, double xp_mod = 1.0, int[] cats = null)
         {
+            if (xp_table != null && xp_table.Count > 0)
+            {
+                bmaxxp = xp_table.Max();
+            }
+
             this.LE = LE;
             LE.Monitor.Log("got to skill 1");            
             this.name = name;
@@ -2402,29 +2415,52 @@ namespace LevelExtender
             this.xp_mod = xp_mod;
             this.cats = cats ?? new int[0];
             LE.Monitor.Log("got to skill 2");
-            this.level = level;
+            //this.level = level;
             LE.Monitor.Log("got to skill 2");
-            if (key < 5)
-                Game1.player.experiencePoints[key] = xp;
-            else
-                this.xp = xp;
+
             LE.Monitor.Log("got to skill 3");
 
             LE.Monitor.Log("got to skill 4");
 
-            for (int i = xp_table.Count; i < 101; i++)
+            /*for (int i = xp_table.Count; i < 101; i++)
             {
                 xp_table.Add(getReqXP(i));
+            }*/
+            
+
+            if (key == 0)
+                Level = Game1.player.FarmingLevel;
+            else if (key == 1)
+                Level = Game1.player.FishingLevel;
+            else if (key == 2)
+                Level = Game1.player.ForagingLevel;
+            else if (key == 3)
+                Level = Game1.player.MiningLevel;
+            else if (key == 4)
+                Level = Game1.player.CombatLevel;
+
+            generateTable(101);
+
+            if (key < 5)
+            {
+                Game1.player.experiencePoints[key] = xp;
+                XP = xp;
             }
+            else
+                XP = xp;
+
+            checkForLevelUp();
         }
         public void checkForLevelUp()
         {
-            int reqxp = getReqXP(level);
+            //int reqxp = getReqXP(level);
 
-            if (xp >= reqxp)
+            int l = getLevByXP();
+
+            if (l != level)
             {
                 lvlbyxp = true;
-                level += 1;
+                level = l;
 
                 /*int newxp;
 
@@ -2443,8 +2479,10 @@ namespace LevelExtender
         {
             if (xp_table.Count > lev)
                 return xp_table[lev];
+            else
+                generateTable(lev);
 
-            int basexp;
+            /*int basexp;
 
             if (xp_table.Count == 0 || lev == 0)
                 basexp = 0;
@@ -2453,56 +2491,102 @@ namespace LevelExtender
 
                 int exp = basexp + (int)Math.Round(((200 * lev) + (lev * lev * lev * lev * 1.0)) * xp_mod);
 
-            using (System.IO.StreamWriter file =
+            /*using (System.IO.StreamWriter file =
             new System.IO.StreamWriter(@"C:\Users\lematd\Documents\LEOutput\text.txt", true))
             {
                 file.WriteLine($"{DateTime.Now}, Base: {basexp}, XP: {exp}");
-            }
+            }*/
 
-            return exp;
+            return xp_table[lev];
 
         }
 
-       /* private int GetDefStartXP()
+        public void generateTable(int lev)
         {
-            if (key > 4)
-                return 0;
 
-            int exp;
+            for (int i = xp_table.Count; i <= lev; i++)
+            {
+                int exp = getXPByLev(i);
+                //int exp = bmaxxp + 100 + (int)Math.Round(((1000 * i) + (i * i * i * i * (0.16))) * xp_mod);
+                /*if (i < 32)
+                    exp = getXPByLev(i - 1) + 100 + (int)Math.Round(1000 * i * xp_mod);
+                else
+                    exp = getXPByLev(i - 1) + 100 + (int)Math.Round(((i * i * i)) * xp_mod);*/
 
-            if (level == 0)
-            {
-                exp = 0;
+                xp_table.Add(exp);
             }
-            else if (level > 0 && level < 11)
-            {
-                exp = LE.defReqXPs[level - 1];
-            }
+        }
+
+        public int getXPByLev(int i)
+        {
+            if (xp_table.Count > i)
+                return xp_table[i];
+
+            if (i < 45)
+                return getXPByLev(i - 1) + 100 + (int)Math.Round(1000 * i * xp_mod);
             else
-            {
-                exp = 15000;
-            }
-
-
-            return exp;
+                return getXPByLev(i - 1) + 100 + (int)Math.Round(((i * i * i * 0.5)) * xp_mod);
         }
 
-        public int StartXP()
+        public int getLevByXP()
         {
-            int xp = 0;
+            int l = 0;
+            if (xp_table.Count > 0 && xp > xp_table.Max())
+                l = xp_table.Count - 1;
 
-            if ()
-
-            if ((level > 0 && level < 10) && key < 5)
+            for (int i = 0; i < xp_table.Count; i++)
             {
-                xp = LE.defReqXPs[level - 1];
+            
+                if (xp <= xp_table[i])
+                {
+                    l = i;
+                    break;
+                }
             }
-
-            return xp;
-
+            LE.Monitor.Log($"LE, lvlbyxp: {name}, key: {key}, found lev: {l}");
+            return l;
         }
-        */
-        
+
+        /* private int GetDefStartXP()
+         {
+             if (key > 4)
+                 return 0;
+
+             int exp;
+
+             if (level == 0)
+             {
+                 exp = 0;
+             }
+             else if (level > 0 && level < 11)
+             {
+                 exp = LE.defReqXPs[level - 1];
+             }
+             else
+             {
+                 exp = 15000;
+             }
+
+
+             return exp;
+         }
+
+         public int StartXP()
+         {
+             int xp = 0;
+
+             if ()
+
+             if ((level > 0 && level < 10) && key < 5)
+             {
+                 xp = LE.defReqXPs[level - 1];
+             }
+
+             return xp;
+
+         }
+         */
+
     }
 
 }
