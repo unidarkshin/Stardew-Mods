@@ -14,7 +14,7 @@ namespace LevelExtender {
         public int FoXP { get; set; }
         public int FoLV { get; set; }*/
         public bool WorldMonsters { get; set; }
-        public double Xp_modifier { get; set; }
+        //public double Xp_modifier { get; set; }
         public bool drawBars { get; set; }
 
         public List<string> skills { get; set; }
@@ -32,7 +32,7 @@ namespace LevelExtender {
             this.FoXP = 0;
             this.FoLV = 10;*/
             this.WorldMonsters = false;
-            this.Xp_modifier = 1.0;
+            //this.Xp_modifier = 1.0;
             this.drawBars = true;
 
             this.skills = new List<string>();

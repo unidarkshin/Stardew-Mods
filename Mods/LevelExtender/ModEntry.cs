@@ -46,7 +46,7 @@ namespace LevelExtender
         //int[] newLevs = { 0, 0, 0, 0, 0 };
         //bool[] olev = { false, false, false, false, false };
         //bool[] shLev = { true, true, true, true, true };
-        double xp_mod = 1.0;
+        //double xp_mod = 1.0;
 
         float oStamina = 0.0f;
         public bool initialtooluse = false;
@@ -366,18 +366,19 @@ namespace LevelExtender
 
                 try
                 {
+                    float bscale = 1.0f;
 
                     if (xpBars[i] == null)
                         continue;
 
                     Skill skill = xpBars[i].skill;
-                    string name = String.Join(" ", skill.name);
+                    string name = String.Join(" ", skill.name.ToCharArray());
                     //string[] skills = { "F a r m i n g", "F i s h i n g", "F o r a g i n g", "M i n i n g", "C o m b a t" };
                     //int[] skillLevs = { Game1.player.FarmingLevel, Game1.player.FishingLevel, Game1.player.ForagingLevel, Game1.player.MiningLevel, Game1.player.CombatLevel };
                     int startX = 8;
                     int startY = 8;
-                    int sep = 30;
-                    int barSep = 60;
+                    int sep = (int)(30 * bscale);
+                    int barSep = (int)(60 * bscale);
 
 
                     int key = skill.key;
@@ -424,7 +425,7 @@ namespace LevelExtender
                         startXP = 0;
                     }
 
-                    int iWidth = 198;
+                    int iWidth = (int)(198 * bscale);
                     double mod = iWidth / (maxXP * 1.0);
                     int bar2w = (int)Math.Round(xpc * mod) + 1;
                     int bar1w = (int)Math.Round(curXP * mod) - bar2w;
@@ -433,13 +434,13 @@ namespace LevelExtender
                     if (i == 0 && xpBars[i].ych < 0)
                     {
                         double ms = (DateTime.Now - otime).TotalMilliseconds;
-                        double addv = (xpBars[i].ych + (ms / 15.625));
+                        double addv = (xpBars[i].ych + (ms / 15.625 * bscale));
                         xpBars[i].ych = (addv >= 0 ? 0 : addv);
                         //Monitor.Log($"NEG yChange Value: {xpBars[i].ych} -> {deltaTime}");
                     }
                     else if (i == 0 && deltaTime >= 4000)
                     {
-                        double addv = (deltaTime - 4000) / 15.625;
+                        double addv = (deltaTime - 4000) / 15.625 * bscale;
                         xpBars[i].ych = (addv >= 64 ? 64 : addv);
                         //Monitor.Log($"yChange Value: {xpBars[i].ych} -> {deltaTime}");
                     }
@@ -450,20 +451,25 @@ namespace LevelExtender
 
                     if (config.drawBars)
                     {
+                        Vector2 r1d = new Vector2((float)Math.Round(214 * bscale), (float)Math.Round(64 * bscale));
+                        Vector2 r2d = new Vector2((float)Math.Round(210 * bscale), (float)Math.Round(60 * bscale));
+                        Vector2 r3d = new Vector2((float)Math.Round(200 * bscale), (float)Math.Round(20 * bscale));
+                        Vector2 r4d = new Vector2(bar1w, (float)Math.Round(18 * bscale));
+                        Vector2 r5d = new Vector2(bar2w, (float)Math.Round(18 * bscale));
 
-                        Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX - 7, startY + (barSep * i) - 7 - xpBars[i].ychi, 214, 64), Color.DarkRed * transp);
-                        Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX - 5, startY + (barSep * i) - 5 - xpBars[i].ychi, 210, 60), new Color(210, 173, 85) * transp);
+                        Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX - 7, startY + (barSep * i) - 7 - xpBars[i].ychi, (int)r1d.X, (int)r1d.Y), Color.DarkRed * transp);
+                        Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX - 5, startY + (barSep * i) - 5 - xpBars[i].ychi, (int)r2d.X, (int)r2d.Y), new Color(210, 173, 85) * transp);
                         //Game1.spriteBatch.DrawString(Game1.dialogueFont, $"{skills[key]}", new Vector2((int)Math.Round(((startX - 7 + 214) / 2.0) - ((skills[key].Length / 2.0) * 12)), startY - 3 + (barSep * i) - xpBars[i].ychi), Color.Black * transp, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 6f), SpriteEffects.None, 0.5f);
                         //Game1.spriteBatch.DrawString(Game1.dialogueFont, $"{skills[key]}", new Vector2((int)Math.Round(((startX - 7 + 214) / 2.0) - ((skills[key].Length / 2.0) * 12)) + 1, startY - 3 + (barSep * i) + 1 - xpBars[i].ychi), Color.Black * transp, 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 6f), SpriteEffects.None, 0.5f);
-                        Vector2 sn1loc = new Vector2((int)Math.Round(((startX - 7 + 214) / 2.0) - (Game1.dialogueFont.MeasureString(xpBars[i].skill.name).X * (Game1.pixelZoom / 6.0f / 2.0f))), startY - 3 + (barSep * i) - xpBars[i].ychi);
+                        //Vector2 sn1loc = new Vector2((int)Math.Round(((startX - 7 + r1d.X) / 2.0) - (Game1.dialogueFont.MeasureString(xpBars[i].skill.name).X * (Game1.pixelZoom / 6.0f / 2.0f * bscale))), startY - 3 + (barSep * i) - xpBars[i].ychi);
                         //Utility.drawTextWithColoredShadow(Game1.spriteBatch, skills[key], Game1.dialogueFont, sn1loc, Color.Black * (transp), new Color(90, 35, 0) * transp, Game1.pixelZoom / 6f, 0.5f);
 
-                        Game1.spriteBatch.DrawString(Game1.dialogueFont, $"{name}", new Vector2((int)Math.Round(((startX - 7 + 214) / 2.0) - (Game1.dialogueFont.MeasureString(name).X * (Game1.pixelZoom / 6.0f / 2.0f))), startY - 3 + (barSep * i) - xpBars[i].ychi), new Color(30, 3, 0) * (transp * 1.1f), 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 6f), SpriteEffects.None, 0.5f);
-                        Game1.spriteBatch.DrawString(Game1.dialogueFont, $"{name}", new Vector2((int)Math.Round(((startX - 7 + 214) / 2.0) - (Game1.dialogueFont.MeasureString(name).X * (Game1.pixelZoom / 6.0f / 2.0f))) + 1, startY - 3 + (barSep * i) - xpBars[i].ychi + 1), new Color(90, 35, 0) * (transp), 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 6.0f), SpriteEffects.None, 0.5f);
+                        Game1.spriteBatch.DrawString(Game1.dialogueFont, $"{name}", new Vector2((int)Math.Round(((startX - 7 + bar1w) / 2.0) - (Game1.dialogueFont.MeasureString(name).X * (Game1.pixelZoom / 6.0f / 2.0f)* bscale)), (startY - 3 + (barSep * i) - xpBars[i].ychi) * bscale), new Color(30, 3, 0) * (transp * 1.1f), 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 6f * bscale), SpriteEffects.None, 0.5f);
+                        Game1.spriteBatch.DrawString(Game1.dialogueFont, $"{name}", new Vector2((int)Math.Round(((startX - 7 + bar1w) / 2.0) - (Game1.dialogueFont.MeasureString(name).X * (Game1.pixelZoom / 6.0f / 2.0f)* bscale)) + 1, (startY - 3 + (barSep * i) - xpBars[i].ychi + 1) * bscale), new Color(90, 35, 0) * (transp), 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 6.0f * bscale), SpriteEffects.None, 0.5f);
 
-                        Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX, startY + (barSep * i) + sep - xpBars[i].ychi, 200, 20), Color.Black * transp);
-                        Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1, startY + (barSep * i) + sep + 1 - xpBars[i].ychi, bar1w, 18), Color.SeaGreen * transp);
-                        Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1 + bar1w, startY + (barSep * i) + sep + 1 - xpBars[i].ychi, bar2w, 18), Color.Turquoise * transp);
+                        Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX, startY + (barSep * i) + sep - xpBars[i].ychi, (int)r3d.X, (int)r3d.Y), Color.Black * transp);
+                        Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1, startY + (barSep * i) + sep + 1 - xpBars[i].ychi, bar1w, (int)r4d.Y), Color.SeaGreen * transp);
+                        Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1 + bar1w, startY + (barSep * i) + sep + 1 - xpBars[i].ychi, bar2w, (int)r5d.Y), Color.Turquoise * transp);
 
                         Vector2 mPos = new Vector2(Game1.getMouseX(), Game1.getMouseY());
                         Vector2 bCenter = new Vector2(startX + (200 / 2), startY + (barSep * i) + sep + (20 / 2) - xpBars[i].ychi);
@@ -1280,6 +1286,11 @@ namespace LevelExtender
 
         private void TimeEvent_AfterDayStarted(object sender, EventArgs e)
         {
+            if (LocalMultiplayer.IsLocalMultiplayer())
+            {
+                Monitor.Log("LE: Splitscreen Multiplayer is not currently supported. Mod will not load.");
+                System.Environment.Exit(1);
+            }
 
             //List<HoeDirt> list = new List<HoeDirt>();
             Farm farm = Game1.getFarm();
@@ -1446,7 +1457,7 @@ namespace LevelExtender
                     Monitor.Log($"skill load - {str}");
                     //Skill sk = JsonConvert.DeserializeObject<Skill>(str);
                     string[] vals = str.Split(',');
-                    Skill sk = new Skill(vals[0], int.Parse(vals[1]), LE, defReqXPs, double.Parse(vals[2]), cats[count]);
+                    Skill sk = new Skill(vals[0], int.Parse(vals[1]), double.Parse(vals[2]), LE, defReqXPs, cats[count]);
                     skills.Add(sk);
                     snames.Add(sk.name);
                     categories.Add(sk.cats);
@@ -1457,7 +1468,7 @@ namespace LevelExtender
                 for (int i = count; i < 5; i++)
                 {
                     Monitor.Log($"adding skills - {i}, dxp: {Game1.player.experiencePoints[i]}");
-                    Skill sk = new Skill(sdnames[i], Game1.player.experiencePoints[i], LE, defReqXPs, 1, cats[i]);
+                    Skill sk = new Skill(sdnames[i], Game1.player.experiencePoints[i], 1.0, LE, defReqXPs, cats[i]);
                     skills.Add(sk);
                     snames.Add(sk.name);
                     categories.Add(sk.cats);
@@ -1466,7 +1477,7 @@ namespace LevelExtender
 
 
                 wm = config_t.WorldMonsters;
-                xp_mod = config_t.Xp_modifier;
+                //xp_mod = config_t.Xp_modifier;
 
                 config = config_t;
 
@@ -1499,7 +1510,7 @@ namespace LevelExtender
             //this.Helper.Data.WriteJsonFile<ModData>($"data/{Constants.SaveFolderName}.json", config);
 
             config.WorldMonsters = wm;
-            config.Xp_modifier = xp_mod;
+            //config.Xp_modifier = xp_mod;
             
 
             this.Helper.Data.WriteJsonFile<ModData>($"data/{Constants.SaveFolderName}.json", config);
@@ -1534,7 +1545,7 @@ namespace LevelExtender
             pres_comp = false;
             firstFade = false;
             config = new ModData();
-            xp_mod = 1.0;
+            //xp_mod = 1.0;
 
             skills = new List<Skill>();
             snames = new List<string>();
@@ -1553,6 +1564,71 @@ namespace LevelExtender
         }*/
 
 
+        public dynamic TalkToSkill(string[] args)
+        {
+            if (args.Length < 3)
+                return -3;
+
+            string arg0 = args[0].ToLower();
+            string arg1 = args[1].ToLower();
+            string arg2 = args[2].ToLower();
+            string arg3 = "";
+            if (args.Length > 3)
+            arg3 = args[3].ToLower();
+
+            Skill s = skills.SingleOrDefault(sk => sk.name.ToLower() == arg1);
+            if (s == null)
+            {
+                return -2;
+            }           
+
+            if (arg0 == "get")
+            {
+                if (arg2 == "xp")
+                {
+                    return s.xp;
+                }
+                else if (arg2 == "lev")
+                {
+                    return s.level;
+                }
+                else
+                {
+                    return -2;
+                }
+
+            }
+            else if (arg0 == "set")
+            {
+                if (!int.TryParse(arg3, out int r))
+                    return -2;
+
+                if (arg2 == "xp")
+                {
+                    s.xp = r;
+                    return r;
+                }
+                else if (arg2 == "lev")
+                {
+                    s.level = r;
+                    return r;
+                }
+                else
+                {
+                    return -2;
+                }
+
+            }
+
+            return -1;
+        }
+
+        public int initializeSkill(string name, int xp, double xp_mod, ModEntry LE, List<int> xp_table = null, int[] cats = null)
+        {
+
+        }
+
+        //public dynamic notifySkill()
     }
 
     public class LEEvents
@@ -1741,12 +1817,14 @@ namespace LevelExtender
 
         int bmaxxp = 0;
 
-        public Skill(string name, int xp, ModEntry LE, List<int> xp_table = null, double xp_mod = 1.0, int[] cats = null)
+        public Skill(string name, int xp, double xp_mod, ModEntry LE, List<int> xp_table = null, int[] cats = null)
         {
             if (xp_table != null && xp_table.Count > 0)
             {
                 bmaxxp = xp_table.Max();
             }
+
+            //LE.Monitor.Log($"LE XP_MOD: {xp_mod}");
 
             this.LE = LE;
           
@@ -1755,9 +1833,10 @@ namespace LevelExtender
             args = new EXPEventArgs();
             args.key = key;
             this.xp_table = xp_table ?? new List<int>();
+            //this.xp_mod = xp_mod.Value;
             this.xp_mod = xp_mod;
             this.cats = cats ?? new int[0];
-            
+
 
             if (key == 0)
                 Level = Game1.player.FarmingLevel;
@@ -1769,6 +1848,8 @@ namespace LevelExtender
                 Level = Game1.player.MiningLevel;
             else if (key == 4)
                 Level = Game1.player.CombatLevel;
+            else
+                Level = 0;
 
             generateTable(101);
 
