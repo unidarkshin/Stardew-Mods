@@ -1457,7 +1457,7 @@ namespace LevelExtender
                     Monitor.Log($"skill load - {str}");
                     //Skill sk = JsonConvert.DeserializeObject<Skill>(str);
                     string[] vals = str.Split(',');
-                    Skill sk = new Skill(vals[0], int.Parse(vals[1]), double.Parse(vals[2]), LE, defReqXPs, cats[count]);
+                    Skill sk = new Skill(LE, vals[0], int.Parse(vals[1]), double.Parse(vals[2]), defReqXPs, cats[count]);
                     skills.Add(sk);
                     snames.Add(sk.name);
                     categories.Add(sk.cats);
@@ -1468,7 +1468,7 @@ namespace LevelExtender
                 for (int i = count; i < 5; i++)
                 {
                     Monitor.Log($"adding skills - {i}, dxp: {Game1.player.experiencePoints[i]}");
-                    Skill sk = new Skill(sdnames[i], Game1.player.experiencePoints[i], 1.0, LE, defReqXPs, cats[i]);
+                    Skill sk = new Skill(LE, sdnames[i], Game1.player.experiencePoints[i], 1.0, defReqXPs, cats[i]);
                     skills.Add(sk);
                     snames.Add(sk.name);
                     categories.Add(sk.cats);
@@ -1588,7 +1588,7 @@ namespace LevelExtender
                 {
                     return s.xp;
                 }
-                else if (arg2 == "lev")
+                else if (arg2 == "level")
                 {
                     return s.level;
                 }
@@ -1608,7 +1608,7 @@ namespace LevelExtender
                     s.xp = r;
                     return r;
                 }
-                else if (arg2 == "lev")
+                else if (arg2 == "level")
                 {
                     s.level = r;
                     return r;
@@ -1623,9 +1623,9 @@ namespace LevelExtender
             return -1;
         }
 
-        public int initializeSkill(string name, int xp, double xp_mod, List<int> xp_table = null, int[] cats = null)
+        public int initializeSkill(string name, int xp, double? xp_mod = null, List<int> xp_table = null, int[] cats = null)
         {
-            Skill sk = new Skill(name, xp, xp_mod, LE, xp_table, cats);
+            Skill sk = new Skill(LE, name, xp, xp_mod, xp_table, cats);
 
             if (sk == null)
             {
@@ -1826,7 +1826,7 @@ namespace LevelExtender
 
         int bmaxxp = 0;
 
-        public Skill(string name, int xp, double xp_mod, ModEntry LE, List<int> xp_table = null, int[] cats = null)
+        public Skill(ModEntry LE, string name, int xp, double? xp_mod = null, List<int> xp_table = null, int[] cats = null)
         {
             if (xp_table != null && xp_table.Count > 0)
             {
@@ -1842,10 +1842,14 @@ namespace LevelExtender
             args = new EXPEventArgs();
             args.key = key;
             this.xp_table = xp_table ?? new List<int>();
-            //this.xp_mod = xp_mod.Value;
-            this.xp_mod = xp_mod;
-            this.cats = cats ?? new int[0];
+            if (xp_mod == null)
+                this.xp_mod = 1.0;
+            else
+                this.xp_mod = xp_mod.Value;
 
+            
+
+            this.cats = cats ?? new int[0];
 
             if (key == 0)
                 Level = Game1.player.FarmingLevel;
