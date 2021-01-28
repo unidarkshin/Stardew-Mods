@@ -70,7 +70,7 @@ namespace LevelExtender
         private double mpMult;
 
         private Timer aTimer2 = new Timer();
-        private bool showXPBar;
+
         //private Timer xpBarTimer = new Timer();
 
         //int[] dxp = { 0, 0, 0, 0, 0 };
@@ -464,8 +464,8 @@ namespace LevelExtender
                         //Vector2 sn1loc = new Vector2((int)Math.Round(((startX - 7 + r1d.X) / 2.0) - (Game1.dialogueFont.MeasureString(xpBars[i].skill.name).X * (Game1.pixelZoom / 6.0f / 2.0f * bscale))), startY - 3 + (barSep * i) - xpBars[i].ychi);
                         //Utility.drawTextWithColoredShadow(Game1.spriteBatch, skills[key], Game1.dialogueFont, sn1loc, Color.Black * (transp), new Color(90, 35, 0) * transp, Game1.pixelZoom / 6f, 0.5f);
 
-                        Game1.spriteBatch.DrawString(Game1.dialogueFont, $"{name}", new Vector2((int)Math.Round(((startX - 7 + bar1w) / 2.0) - (Game1.dialogueFont.MeasureString(name).X * (Game1.pixelZoom / 6.0f / 2.0f)* bscale)), (startY - 3 + (barSep * i) - xpBars[i].ychi) * bscale), new Color(30, 3, 0) * (transp * 1.1f), 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 6f * bscale), SpriteEffects.None, 0.5f);
-                        Game1.spriteBatch.DrawString(Game1.dialogueFont, $"{name}", new Vector2((int)Math.Round(((startX - 7 + bar1w) / 2.0) - (Game1.dialogueFont.MeasureString(name).X * (Game1.pixelZoom / 6.0f / 2.0f)* bscale)) + 1, (startY - 3 + (barSep * i) - xpBars[i].ychi + 1) * bscale), new Color(90, 35, 0) * (transp), 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 6.0f * bscale), SpriteEffects.None, 0.5f);
+                        Game1.spriteBatch.DrawString(Game1.dialogueFont, $"{name}", new Vector2((int)Math.Round(((startX - 7 + r1d.X) / 2.0) - (Game1.dialogueFont.MeasureString(name).X * (Game1.pixelZoom / 6.0f / 2.0f)* bscale)), (startY - 3 + (barSep * i) - xpBars[i].ychi) * bscale), new Color(30, 3, 0) * (transp * 1.1f), 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 6f * bscale), SpriteEffects.None, 0.5f);
+                        Game1.spriteBatch.DrawString(Game1.dialogueFont, $"{name}", new Vector2((int)Math.Round(((startX - 7 + r1d.X) / 2.0) - (Game1.dialogueFont.MeasureString(name).X * (Game1.pixelZoom / 6.0f / 2.0f)* bscale)) + 1, (startY - 3 + (barSep * i) - xpBars[i].ychi + 1) * bscale), new Color(90, 35, 0) * (transp), 0.0f, Vector2.Zero, (float)(Game1.pixelZoom / 6.0f * bscale), SpriteEffects.None, 0.5f);
 
                         Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX, startY + (barSep * i) + sep - xpBars[i].ychi, (int)r3d.X, (int)r3d.Y), Color.Black * transp);
                         Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle(startX + 1, startY + (barSep * i) + sep + 1 - xpBars[i].ychi, bar1w, (int)r4d.Y), Color.SeaGreen * transp);
@@ -504,7 +504,10 @@ namespace LevelExtender
         private void SetXP(string command, string[] arg)
         {
             if (!Context.IsWorldReady || arg.Length < 2 || !int.TryParse(arg[1], out int xp))
+            {
+                Monitor.Log("No skill name entered or the xp was not a whole number.");
                 return;
+            }
 
             //int[] skillLevs = { Game1.player.FarmingLevel, Game1.player.FishingLevel, Game1.player.ForagingLevel, Game1.player.MiningLevel, Game1.player.CombatLevel };
             Skill skill = skills.SingleOrDefault(sk => sk.name.ToLower() == arg[0].ToLower());
@@ -739,7 +742,10 @@ namespace LevelExtender
             Skill skill = skills.SingleOrDefault(sk => sk.name.ToLower() == args[0].ToLower());
 
             if (skill == null)
+            {
+                Monitor.Log("Could not find a match for given skill name.");
                 return;
+            }
 
             string str = $"{skill.name}: ";
             int count = 0;
@@ -996,7 +1002,7 @@ namespace LevelExtender
             if (!Context.IsWorldReady)
                 return;
 
-
+            
             if (e.IsMultipleOf(3600))
             {
                 List<Monster> tmons = new List<Monster>();
@@ -1014,6 +1020,14 @@ namespace LevelExtender
                     monsters.Remove(mon);
                 }
 
+            }
+
+            if (e.IsMultipleOf(1800))
+            {
+                for (int i = 0; i < skillLevs.Count; i++)
+                {
+                    skillLevs[i] = skills[i].level;
+                }
             }
 
             if (skills.Count > 4)
@@ -1429,7 +1443,7 @@ namespace LevelExtender
             try
             {
 
-                Monitor.Log("Starting load for LE");
+                Monitor.Log("Starting skill load for LE");
 
                 var config_t = this.Helper.Data.ReadJsonFile<ModData>($"data/{Constants.SaveFolderName}.json") ?? new ModData();
 
@@ -1457,7 +1471,7 @@ namespace LevelExtender
                     Monitor.Log($"skill load - {str}");
                     //Skill sk = JsonConvert.DeserializeObject<Skill>(str);
                     string[] vals = str.Split(',');
-                    Skill sk = new Skill(LE, vals[0], int.Parse(vals[1]), double.Parse(vals[2]), defReqXPs, cats[count]);
+                    Skill sk = new Skill(LE, vals[0], int.Parse(vals[1]), double.Parse(vals[2]), new List<int>(defReqXPs), cats[count]);
                     skills.Add(sk);
                     snames.Add(sk.name);
                     categories.Add(sk.cats);
@@ -1468,7 +1482,7 @@ namespace LevelExtender
                 for (int i = count; i < 5; i++)
                 {
                     Monitor.Log($"adding skills - {i}, dxp: {Game1.player.experiencePoints[i]}");
-                    Skill sk = new Skill(LE, sdnames[i], Game1.player.experiencePoints[i], 1.0, defReqXPs, cats[i]);
+                    Skill sk = new Skill(LE, sdnames[i], Game1.player.experiencePoints[i], 1.0, new List<int>(defReqXPs), cats[i]);
                     skills.Add(sk);
                     snames.Add(sk.name);
                     categories.Add(sk.cats);
@@ -1550,6 +1564,7 @@ namespace LevelExtender
             skills = new List<Skill>();
             snames = new List<string>();
             categories = new List<int[]>();
+            skillLevs = new List<int>();
         }
         
 
@@ -1771,7 +1786,7 @@ namespace LevelExtender
 
                 if (key < 5)
                 {
-                    LE.Monitor.Log($"LE Level Initialize: {level}, XP: {xp}, KEY: {key}");
+                    //LE.Monitor.Log($"LE Level Initialize: {level}, XP: {xp}, KEY: {key}");
 
                     if (key == 0)
                         Game1.player.FarmingLevel = level;
@@ -1864,7 +1879,7 @@ namespace LevelExtender
             else
                 Level = 0;
 
-            generateTable(101);
+            generateTable(101); 
 
             if (key < 5)
             {
@@ -1920,6 +1935,8 @@ namespace LevelExtender
             if (xp_table.Count > i)
                 return xp_table[i];
 
+            //LE.Monitor.Log($"LE XP_MOD before calcs: {xp_mod}");
+
             if (i < 45)
                 return getXPByLev(i - 1) + 300 + (int)Math.Round(1000 * i * xp_mod);
             else
@@ -1941,7 +1958,7 @@ namespace LevelExtender
                     break;
                 }
             }
-            LE.Monitor.Log($"LE, lvlbyxp: {name}, key: {key}, found lev: {l}");
+            //LE.Monitor.Log($"LE, lvlbyxp: {name}, key: {key}, found lev: {l}");
             return l;
         }
 
