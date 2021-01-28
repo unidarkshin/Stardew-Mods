@@ -46,5 +46,13 @@ namespace LevelExtender
             remove => ME.LEE.OnXPChanged -= value;
         }
 
+        public dynamic TalkToSkill(string[] args)
+        {
+            return ME.TalkToSkill(args);
+        }
+        public int initializeSkill(string name, int xp, double xp_mod, List<int> xp_table = null, int[] cats = null)
+        {
+            return ME.initializeSkill(name, xp, xp_mod, xp_table, cats);
+        }
     }
 }

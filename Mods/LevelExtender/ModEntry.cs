@@ -1623,9 +1623,18 @@ namespace LevelExtender
             return -1;
         }
 
-        public int initializeSkill(string name, int xp, double xp_mod, ModEntry LE, List<int> xp_table = null, int[] cats = null)
+        public int initializeSkill(string name, int xp, double xp_mod, List<int> xp_table = null, int[] cats = null)
         {
+            Skill sk = new Skill(name, xp, xp_mod, LE, xp_table, cats);
 
+            if (sk == null)
+            {
+                return -1;
+            }
+
+            skills.Add(sk);
+
+            return 0;
         }
 
         //public dynamic notifySkill()
