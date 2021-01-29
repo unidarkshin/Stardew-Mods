@@ -10,6 +10,8 @@ namespace LevelExtender {
 
         public bool drawExtraItemNotifications { get; set; }
 
+        public int minItemPriceForNotifications { get; set; }
+
         public List<string> skills { get; set; }
 
         public ModData()
@@ -20,6 +22,8 @@ namespace LevelExtender {
             this.drawBars = true;
 
             this.drawExtraItemNotifications = true;
+
+            this.minItemPriceForNotifications = 50;
 
             this.skills = new List<string>();
         }

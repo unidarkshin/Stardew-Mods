@@ -186,6 +186,7 @@ namespace LevelExtender
             helper.ConsoleCommands.Add("set_xp", "Sets your current XP for a given skill: set_xp <skill name> <XP: int 0 -> ANY>", this.SetXP);
             helper.ConsoleCommands.Add("draw_bars", "Sets whether the XP bars should be drawn or not: draw_bars <bool>, Default; true.", this.DrawBars);
             helper.ConsoleCommands.Add("draw_ein", "Sets whether the extra item notifications should be drawn or not: draw_ein <bool>, Default; true.", this.DrawEIN);
+            helper.ConsoleCommands.Add("min_ein_price", "Sets the minimum price threshold for extra item notifications: min_ein_price <int>, Default; 50", this.MinEINP);
             //helper.ConsoleCommands.Add("LE_cmds", "Displays the xp table for your current levels.", this.XPT);
 
             this.Helper.Content.InvalidateCache("Data/Fish");
@@ -194,13 +195,22 @@ namespace LevelExtender
 
         }
 
+        private void MinEINP(string arg1, string[] arg2)
+        {
+            if (!int.TryParse(arg2[0], out int val))
+                return;
+
+            config.minItemPriceForNotifications = val;
+            Monitor.Log($"You successfully set the minimum price threshold for extra item notifications to {val}.");
+        }
+
         private void DrawEIN(string arg1, string[] arg2)
         {
             if (!bool.TryParse(arg2[0], out bool val))
                 return;
 
             config.drawExtraItemNotifications = val;
-            Monitor.Log($"You succesfully set draw extra item notifications to {val}.");
+            Monitor.Log($"You successfully set draw extra item notifications to {val}.");
         }
 
         private void DrawBars(string arg1, string[] arg2)
@@ -209,7 +219,7 @@ namespace LevelExtender
                 return;
 
             config.drawBars = val;
-            Monitor.Log($"You succesfully set draw XP bars to {val}.");
+            Monitor.Log($"You successfully set draw XP bars to {val}.");
         }
 
         public static bool AITI2(Item item, bool makeActiveObject)
@@ -223,17 +233,25 @@ namespace LevelExtender
                 int cat = item.Category;
                 string str = "";
 
+                int tstack = item.Stack;
+
                 //tskills = skills
                 int i = 0;
 
                 foreach (int[] cats in categories)
                 {
+                    //Monitor.Log($"LE cats: {cats}, item cat {cat}, {i}, cont {cats.Contains(cat)}, drawein {config.drawExtraItemNotifications}");
                     if (cats.Contains(cat) && ShouldDup(i))
                     {
                         item.Stack += 1;
 
+                        while (ShouldDup(i))
+                        {
+                            item.Stack += 1;
+                        }
+
                         if (config.drawExtraItemNotifications)
-                            str = $"Your {snames[i]} level allowed you to obtain an extra {item.DisplayName}!";
+                            str = $"Your {snames[i]} level allowed you to obtain {item.Stack - tstack} extra {item.DisplayName}!";
 
                         break;
                     }
@@ -241,9 +259,9 @@ namespace LevelExtender
                     i++;
                 }
 
-                if (str.Length > 0 && item.salePrice() >= 100)
+                if (str.Length > 0 && item.salePrice() >= config.minItemPriceForNotifications)
                 {
-                    Game1.chatBox.addMessage(str, Color.DeepSkyBlue);
+                    //Game1.chatBox.addMessage(str, Color.DeepSkyBlue);
                     Game1.addHUDMessage(new HUDMessage(str, Color.DeepSkyBlue, 3000, true));
                 }
                 //item.HasBeenInInventory = true;
